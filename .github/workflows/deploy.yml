@@ -29,7 +29,7 @@ jobs:
           node-version: 20
 
       - name: Install HTML validator
-        run: npm install --global html-validate
+        run: npm install --global --ignore-scripts html-validate
 
       - name: HTML Syntax & Quality Check
         run: html-validate '*.html'
