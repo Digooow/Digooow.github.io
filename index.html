@@ -47,8 +47,8 @@
 
 <body class="bg-[#06140f] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-amber-400/30 selection:text-amber-200">
 
-  <!-- Canvas das Fadas Douradas e Espíritos de Luz de Kamasylvia -->
-  <canvas id="fairy-canvas" class="fixed inset-0 pointer-events-none z-20"></canvas>
+  <!-- Luzes ambientais: ficam atrás do conteúdo e percorrem apenas áreas livres -->
+  <canvas id="fairy-canvas" class="fixed inset-0 pointer-events-none z-[5]" aria-hidden="true"></canvas>
 
   <!-- Fundo Panorâmico Vivo (Imagens Reais de Kamasylvia) -->
   <div id="ambient-backdrop" class="fixed inset-0 pointer-events-none z-0">

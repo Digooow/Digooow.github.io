@@ -22,6 +22,18 @@ html {
   overflow: hidden;
 }
 
+#fairy-canvas {
+  z-index: 5;
+  opacity: 0.82;
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fairy-canvas {
+    display: none;
+  }
+}
+
 .bg-slide {
   position: absolute;
   inset: 0;

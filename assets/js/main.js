@@ -44,155 +44,330 @@
   updateBackground();
 })();
 
-// ─── 2. CANVAS DE FADAS DOURADAS E ESPÍRITOS DE LUZ (BDO INSPIRED) ───────
+// ─── 2. FADAS E LUZES AMBIENTAIS ──────────────────────────────────────────
 (function initFairyCanvas() {
   const canvas = document.getElementById('fairy-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-  let width, height;
-  let particles = [];
-  let mouse = { x: -1000, y: -1000 };
+  let width = 0;
+  let height = 0;
+  let fairies = [];
+  let motes = [];
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const palettes = [
+    { body: '#fef3c7', wing: '#fbbf24', glow: '#f59e0b' },
+    { body: '#d1fae5', wing: '#34d399', glow: '#10b981' },
+    { body: '#cffafe', wing: '#67e8f9', glow: '#06b6d4' },
+    { body: '#ede9fe', wing: '#c4b5fd', glow: '#8b5cf6' },
+    { body: '#fce7f3', wing: '#f472b6', glow: '#ec4899' },
+    { body: '#ffedd5', wing: '#fb923c', glow: '#f97316' },
+    { body: '#e0e7ff', wing: '#818cf8', glow: '#6366f1' },
+    { body: '#cffafe', wing: '#22d3ee', glow: '#0891b2' },
+    { body: '#dcfce7', wing: '#84cc16', glow: '#65a30d' },
+    { body: '#fae8ff', wing: '#e879f9', glow: '#c026d3' },
+    { body: '#fef9c3', wing: '#fde047', glow: '#eab308' },
+    { body: '#e0f2fe', wing: '#38bdf8', glow: '#0284c7' },
+    { body: '#f1f5f9', wing: '#cbd5e1', glow: '#94a3b8' },
+    { body: '#f5d0fe', wing: '#d946ef', glow: '#a21caf' },
+    { body: '#ccfbf1', wing: '#2dd4bf', glow: '#0f766e' },
+    { body: '#ffe4e6', wing: '#fb7185', glow: '#e11d48' },
+    { body: '#fef3c7', wing: '#facc15', glow: '#ca8a04' },
+    { body: '#dbeafe', wing: '#60a5fa', glow: '#2563eb' },
+    { body: '#f3e8ff', wing: '#a78bfa', glow: '#7c3aed' },
+    { body: '#d9f99d', wing: '#a3e635', glow: '#4d7c0f' }
+  ];
+
+  function createFairyPalette(index) {
+    const hue = (index * 137.508 + (index % palettes.length) * 3.5) % 360;
+    const saturation = 68 + (index % 4) * 5;
+    const bodyLightness = 88 - (index % 3) * 4;
+    const wingLightness = 62 + (index % 4) * 4;
+    const glowLightness = 48 + (index % 3) * 5;
+    return {
+      body: hslToRgb(hue, saturation, bodyLightness),
+      wing: hslToRgb(hue, saturation + 8, wingLightness),
+      glow: hslToRgb(hue, saturation + 12, glowLightness)
+    };
+  }
+
+  function hslToRgb(hue, saturation, lightness) {
+    const s = saturation / 100;
+    const l = lightness / 100;
+    const chroma = (1 - Math.abs(2 * l - 1)) * s;
+    const segment = hue / 60;
+    const x = chroma * (1 - Math.abs((segment % 2) - 1));
+    const match = l - chroma / 2;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+
+    if (segment < 1) [red, green, blue] = [chroma, x, 0];
+    else if (segment < 2) [red, green, blue] = [x, chroma, 0];
+    else if (segment < 3) [red, green, blue] = [0, chroma, x];
+    else if (segment < 4) [red, green, blue] = [0, x, chroma];
+    else if (segment < 5) [red, green, blue] = [x, 0, chroma];
+    else [red, green, blue] = [chroma, 0, x];
+
+    return {
+      red: Math.round((red + match) * 255),
+      green: Math.round((green + match) * 255),
+      blue: Math.round((blue + match) * 255)
+    };
+  }
+
+  function rgba(color, alpha) {
+    return `rgba(${color.red}, ${color.green}, ${color.blue}, ${alpha})`;
+  }
 
   function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
+    fairies.forEach((fairy) => fairy.reposition());
+    motes.forEach((mote) => mote.reposition());
   }
-  window.addEventListener('resize', resize, { passive: true });
-  resize();
 
-  window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  }, { passive: true });
-
-  class FairyParticle {
-    constructor() {
-      this.reset(true);
+  class Fairy {
+    constructor(depth = Math.random(), paletteIndex = 0) {
+      this.phase = Math.random() * Math.PI * 2;
+      this.palette = createFairyPalette(paletteIndex);
+      this.scale = (0.28 + Math.random() * 0.42) * 0.9;
+      this.depth = depth;
+      this.scale *= 0.72 + this.depth * 0.85;
+      this.opacity = 0.22 + this.depth * 0.7;
+      this.glow = 0.55 + this.depth * 1.05 + Math.random() * 0.45;
+      this.wingSpeed = 0.018 + Math.random() * 0.055;
+      this.flightSpeed = 0.045 + Math.random() * 0.19;
+      this.direction = Math.random() > 0.5 ? 1 : -1;
+      this.reposition(true);
     }
 
-    reset(initial = false) {
+    reposition(initial = false) {
       this.x = Math.random() * width;
-      this.y = initial ? Math.random() * height : height + 20;
-      this.size = Math.random() * 2.8 + 1.2;
-      this.speedY = -(Math.random() * 0.6 + 0.2);
-      this.speedX = (Math.random() - 0.5) * 0.4;
-      this.life = 0;
-      this.maxLife = Math.random() * 400 + 200;
-      this.wingAngle = Math.random() * Math.PI * 2;
-      this.wingSpeed = Math.random() * 0.15 + 0.08;
-
-      // 30% são Fadas Douradas com Asas Luminosas (como no print da floresta)
-      this.isFairy = Math.random() < 0.35;
-
-      // Paleta: Dourado Âmbar, Esmeralda, Ciano Élfico ou Pérola
-      const colors = [
-        { r: 251, g: 191, b: 36 },  // Dourado
-        { r: 245, g: 158, b: 11 },  // Âmbar
-        { r: 16,  g: 185, b: 129 }, // Esmeralda
-        { r: 52,  g: 211, b: 153 }, // Verde Menta
-        { r: 6,   g: 182, b: 212 }, // Ciano
-        { r: 254, g: 240, b: 138 }, // Luz Dourada
-      ];
-      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.y = 38 + Math.random() * Math.max(1, height - 38);
+      this.vx = this.flightSpeed * this.direction;
+      this.vy = (Math.random() - 0.5) * 0.12;
+      this.drift = 0.2 + Math.random() * 0.55;
+      this.life = initial ? Math.random() * 1000 : 0;
     }
 
     update() {
-      this.life++;
-      this.wingAngle += this.wingSpeed;
+      this.life += 1;
+      this.phase += 0.009 + this.flightSpeed * 0.025;
+      this.x += this.vx + Math.sin(this.phase * 1.7) * this.drift * 0.12;
+      this.y += this.vy + Math.cos(this.phase) * this.drift * 0.08;
 
-      // Movimento oscilatório suave
-      this.x += this.speedX + Math.sin(this.wingAngle) * 0.4;
-      this.y += this.speedY;
-
-      // Reação sutil ao mouse
-      const dx = this.x - mouse.x;
-      const dy = this.y - mouse.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 100) {
-        this.x += (dx / dist) * 1.5;
-        this.y += (dy / dist) * 1.5;
-      }
-
-      if (this.life >= this.maxLife || this.y < -30) {
-        this.reset();
+      if (this.x < -80 || this.x > width + 80 || this.y < 38 || this.y > height + 30) {
+        this.reposition();
       }
     }
 
     draw() {
-      const progress = this.life / this.maxLife;
-      let alpha = 1;
-      if (progress < 0.15) alpha = progress / 0.15;
-      else if (progress > 0.8) alpha = (1 - progress) / 0.2;
-      alpha *= 0.85;
+      const pulse = 0.78 + Math.sin(this.phase * 2) * 0.18;
+      const alpha = this.opacity * pulse;
+      const scale = this.scale;
 
-      const { r, g, b } = this.color;
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.scale(this.direction * scale, scale);
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = rgba(this.palette.glow, 0.9);
+      ctx.shadowBlur = 22 * this.glow;
 
-      if (this.isFairy) {
-        // Desenha Fada com Asas de Luz
-        const wingSpan = this.size * 3.5;
-        const wingFlap = Math.sin(this.wingAngle) * 0.6 + 0.8;
+      const aura = ctx.createRadialGradient(0, 0, 2, 0, 0, 70);
+      aura.addColorStop(0, rgba(this.palette.wing, 0.6));
+      aura.addColorStop(0.45, rgba(this.palette.glow, 0.16));
+      aura.addColorStop(1, rgba(this.palette.glow, 0));
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(0, 0, 70, 0, Math.PI * 2);
+      ctx.fill();
 
-        ctx.save();
-        ctx.translate(this.x, this.y);
+      const wingFlutter = Math.sin(this.life * this.wingSpeed) * 0.16;
+      ctx.strokeStyle = rgba(this.palette.body, 0.72);
+      ctx.lineWidth = 1.2;
 
-        // Asa Esquerda
-        ctx.beginPath();
-        ctx.ellipse(-wingSpan * 0.6, 0, wingSpan * 0.8, wingSpan * 0.4 * wingFlap, -Math.PI / 6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(251, 191, 36, ${alpha * 0.45})`;
-        ctx.fill();
+      ctx.save();
+      ctx.rotate(-0.22 + wingFlutter);
+      const leftWing = ctx.createRadialGradient(-22, -12, 2, -25, -12, 42);
+      leftWing.addColorStop(0, rgba(this.palette.body, 0.92));
+      leftWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
+      leftWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
+      leftWing.addColorStop(1, rgba(this.palette.glow, 0));
+      ctx.fillStyle = leftWing;
+      ctx.beginPath();
+      ctx.ellipse(-25, -12, 38, 18, Math.PI / 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = rgba(this.palette.body, 0.52);
+      ctx.beginPath();
+      ctx.moveTo(-2, -9);
+      ctx.lineTo(-50, -30);
+      ctx.moveTo(-12, -13);
+      ctx.lineTo(-43, -3);
+      ctx.stroke();
+      ctx.restore();
 
-        // Asa Direita
-        ctx.beginPath();
-        ctx.ellipse(wingSpan * 0.6, 0, wingSpan * 0.8, wingSpan * 0.4 * wingFlap, Math.PI / 6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(251, 191, 36, ${alpha * 0.45})`;
-        ctx.fill();
+      ctx.save();
+      ctx.rotate(0.22 - wingFlutter);
+      const rightWing = ctx.createRadialGradient(22, -12, 2, 25, -12, 42);
+      rightWing.addColorStop(0, rgba(this.palette.body, 0.92));
+      rightWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
+      rightWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
+      rightWing.addColorStop(1, rgba(this.palette.glow, 0));
+      ctx.fillStyle = rightWing;
+      ctx.beginPath();
+      ctx.ellipse(25, -12, 38, 18, -Math.PI / 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = rgba(this.palette.body, 0.52);
+      ctx.beginPath();
+      ctx.moveTo(2, -9);
+      ctx.lineTo(50, -30);
+      ctx.moveTo(12, -13);
+      ctx.lineTo(43, -3);
+      ctx.stroke();
+      ctx.restore();
 
-        // Núcleo Dourado Brilhante
-        ctx.beginPath();
-        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.9)`;
-        ctx.fill();
+      ctx.shadowBlur = 38 * this.glow;
+      const bodyGradient = ctx.createLinearGradient(0, -22, 0, 28);
+      bodyGradient.addColorStop(0, rgba(this.palette.body, 1));
+      bodyGradient.addColorStop(0.45, rgba(this.palette.wing, 0.96));
+      bodyGradient.addColorStop(1, rgba(this.palette.glow, 0.48));
+      ctx.fillStyle = bodyGradient;
+      ctx.strokeStyle = rgba(this.palette.body, 0.86);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(0, -18, 5, 6.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-5, -23);
+      ctx.quadraticCurveTo(-10, -18, -8, -10);
+      ctx.quadraticCurveTo(-5, -24, 0, -25);
+      ctx.quadraticCurveTo(5, -24, 8, -10);
+      ctx.quadraticCurveTo(10, -18, 5, -23);
+      ctx.fillStyle = rgba(this.palette.glow, 0.68);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(0, -11);
+      ctx.bezierCurveTo(-8, -6, -8, 8, -18, 27);
+      ctx.quadraticCurveTo(0, 21, 18, 27);
+      ctx.bezierCurveTo(8, 8, 8, -6, 0, -11);
+      ctx.fill();
+      ctx.stroke();
 
-        ctx.restore();
-      } else {
-        // Esfera de Luz Espiritual com Halo
-        const glowRadius = this.size * 4;
-        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
-        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha})`);
-        gradient.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, ${alpha * 0.3})`);
-        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+      ctx.strokeStyle = rgba(this.palette.wing, 0.9);
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(-4, -9);
+      ctx.quadraticCurveTo(-19, -25, -40, -28);
+      ctx.moveTo(4, -9);
+      ctx.quadraticCurveTo(19, -25, 40, -28);
+      ctx.moveTo(-5, -2);
+      ctx.quadraticCurveTo(-11, 10, -24, 22);
+      ctx.moveTo(5, -2);
+      ctx.quadraticCurveTo(11, 10, 24, 22);
+      ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        // Centro brilhante
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 0.7, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-        ctx.fill();
-      }
+      ctx.restore();
     }
   }
 
-  function spawnParticles() {
-    const count = window.innerWidth < 768 ? 40 : 85;
-    particles = Array.from({ length: count }, () => new FairyParticle());
+  class Mote {
+    constructor(depth = Math.random()) {
+      this.phase = Math.random() * Math.PI * 2;
+      this.radius = 0.7 + Math.random() * 2.1;
+      this.depth = depth;
+      this.radius *= 0.7 + this.depth * 0.8;
+      this.opacity = 0.16 + this.depth * 0.58;
+      this.glow = 0.45 + this.depth * 0.95 + Math.random() * 0.3;
+      this.color = Math.random() > 0.32
+        ? { core: '#fff7bf', light: '#facc15' }
+        : { core: '#fef08a', light: '#eab308' };
+      this.reposition(true);
+    }
+
+    reposition(initial = false) {
+      this.x = Math.random() * width;
+      this.y = 38 + Math.random() * Math.max(1, height - 38);
+      this.vx = (Math.random() - 0.5) * 0.18;
+      this.vy = (Math.random() - 0.5) * 0.12;
+      this.life = initial ? Math.random() * 1000 : 0;
+    }
+
+    update() {
+      this.life += 1;
+      this.phase += 0.01;
+      this.x += this.vx + Math.sin(this.phase * 1.5) * 0.04;
+      this.y += this.vy + Math.cos(this.phase) * 0.04;
+      if (this.x < -10 || this.x > width + 10 || this.y < 38 || this.y > height + 10) {
+        this.reposition();
+      }
+    }
+
+    draw() {
+      const pulse = 0.72 + Math.sin(this.phase * 2.2) * 0.28;
+      const glowRadius = this.radius * (8 + this.glow * 5);
+      const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
+      gradient.addColorStop(0, `${this.color.core}${Math.round(this.opacity * pulse * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0.12, `${this.color.light}${Math.round(this.opacity * pulse * 0.72 * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0.45, `${this.color.light}${Math.round(this.opacity * pulse * 0.16 * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(1, `${this.color.light}00`);
+      ctx.save();
+      ctx.shadowColor = this.color.light;
+      ctx.shadowBlur = 18 * this.glow;
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `${this.color.core}${Math.round(this.opacity * pulse * 255).toString(16).padStart(2, '0')}`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
-  spawnParticles();
-  window.addEventListener('resize', spawnParticles, { passive: true });
+
+  function spawnLights() {
+    const isMobile = window.innerWidth < 768;
+    const distantFairies = isMobile ? 24 : 48;
+    const nearFairies = isMobile ? 2 : 4;
+    const distantMotes = isMobile ? 48 : 96;
+    const nearMotes = isMobile ? 4 : 8;
+
+    fairies = [
+      ...Array.from({ length: distantFairies }, (_, index) => new Fairy(
+        0.05 + Math.random() * 0.28,
+        index
+      )),
+      ...Array.from({ length: nearFairies }, (_, index) => new Fairy(
+        0.68 + Math.random() * 0.32,
+        distantFairies + index
+      ))
+    ];
+    motes = [
+      ...Array.from({ length: distantMotes }, () => new Mote(0.03 + Math.random() * 0.3)),
+      ...Array.from({ length: nearMotes }, () => new Mote(0.7 + Math.random() * 0.3))
+    ];
+  }
+  resize();
+  spawnLights();
+  window.addEventListener('resize', resize, { passive: true });
 
   function loop() {
     ctx.clearRect(0, 0, width, height);
-    for (const p of particles) {
-      p.update();
-      p.draw();
+    if (!reducedMotion.matches) {
+      for (const fairy of fairies) {
+        fairy.update();
+        fairy.draw();
+      }
+      for (const mote of motes) {
+        mote.update();
+        mote.draw();
+      }
+      requestAnimationFrame(loop);
     }
-    requestAnimationFrame(loop);
   }
   loop();
 })();
