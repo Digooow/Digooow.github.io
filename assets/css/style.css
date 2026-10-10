@@ -53,6 +53,26 @@ html {
   transform: scale(1);
 }
 
+.bg-slide.bg-hero {
+  background-image: url('../img/kamasylvia-fairies.jpg');
+}
+
+.bg-slide.bg-architecture {
+  background-image: url('../img/grana-gazebo.jpg');
+}
+
+.bg-slide.bg-waterfalls {
+  background-image: url('../img/kamasylvia-waterfalls.jpg');
+}
+
+.bg-slide.bg-stream {
+  background-image: url('../img/forest-stream.jpg');
+}
+
+.bg-slide.bg-sunset {
+  background-image: url('../img/kamasylve-sunset.jpg');
+}
+
 /* Vinheta Suave: Preserva a beleza das árvores e águas enquanto garante legibilidade */
 .ambient-vignette {
   position: absolute;
