@@ -144,11 +144,14 @@
       this.palette = createFairyPalette(paletteIndex);
       this.scale = (0.238 + Math.random() * 0.357) * 0.9;
       this.depth = depth;
-      const distanceScale = this.depth < 0.012
-        ? 0.24 + this.depth * 9
-        : this.depth < 0.04
-          ? 0.348 + (this.depth - 0.012) * 8.6
-          : 0.56 + this.depth * 0.72;
+      let distanceScale;
+      if (this.depth < 0.012) {
+        distanceScale = 0.24 + this.depth * 9;
+      } else if (this.depth < 0.04) {
+        distanceScale = 0.348 + (this.depth - 0.012) * 8.6;
+      } else {
+        distanceScale = 0.56 + this.depth * 0.72;
+      }
       this.scale *= distanceScale;
       const baseOpacity = (0.22 + this.depth * 0.7) * 1.82;
       this.opacity = this.depth < 0.04
