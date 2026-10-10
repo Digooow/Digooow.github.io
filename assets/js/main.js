@@ -187,8 +187,8 @@
 
     draw() {
       const pulse = 0.78 + Math.sin(this.phase * 2) * 0.18;
-      const alpha = this.opacity * pulse;
-      const scale = this.scale;
+      const alpha = Math.min(1, this.opacity * pulse * (this.isSmallest ? 1.28 : 1));
+      const scale = this.scale * (this.isSmallest ? 1.3 : 1);
 
       if (this.depth < 0.012) {
         ctx.save();
@@ -212,15 +212,15 @@
       ctx.globalAlpha = alpha;
 
       if (this.depth < 0.3) {
-        ctx.fillStyle = rgba(this.palette.wing, 0.58);
-        ctx.strokeStyle = rgba(this.palette.body, 0.5);
+        ctx.fillStyle = rgba(this.palette.wing, 0.78);
+        ctx.strokeStyle = rgba(this.palette.body, 0.7);
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.ellipse(-9, -3, 15, 6, -0.25, 0, Math.PI * 2);
         ctx.ellipse(9, -3, 15, 6, 0.25, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = rgba(this.palette.body, 0.72);
+        ctx.fillStyle = rgba(this.palette.body, 0.92);
         ctx.beginPath();
         ctx.arc(0, 1, 2.2, 0, Math.PI * 2);
         ctx.fill();
@@ -383,18 +383,19 @@
       const pulse = 0.82 + Math.sin(this.phase * 2.2) * 0.18;
       const glowRadius = this.radius * (4 + this.glow * 2.2);
       const coreRadius = this.radius * pulse;
+      const brightness = this.isSmallest ? 1.38 : 1;
       if (this.depth < 0.28) {
-        ctx.fillStyle = `rgba(255, 223, 76, ${this.opacity * pulse})`;
+        ctx.fillStyle = `rgba(255, 235, 116, ${Math.min(1, this.opacity * pulse * 1.3 * brightness)})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, coreRadius, 0, Math.PI * 2);
         ctx.fill();
         return;
       }
       const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
-      gradient.addColorStop(0, `${this.color.core}${Math.round(this.opacity * pulse * 0.98 * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.08, `${this.color.light}${Math.round(this.opacity * pulse * 0.78 * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.22, `${this.color.light}${Math.round(this.opacity * pulse * 0.3 * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.45, `${this.color.light}${Math.round(this.opacity * pulse * 0.1 * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0, `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 0.98 * brightness) * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0.08, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.78 * brightness) * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0.22, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.3 * brightness) * 255).toString(16).padStart(2, '0')}`);
+      gradient.addColorStop(0.45, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.1 * brightness) * 255).toString(16).padStart(2, '0')}`);
       gradient.addColorStop(1, `${this.color.light}00`);
       ctx.save();
       ctx.shadowColor = this.color.light;
@@ -405,15 +406,15 @@
       ctx.fill();
 
       const centralGlow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, coreRadius * 2.6);
-      centralGlow.addColorStop(0, `${this.color.core}${Math.round(this.opacity * pulse * 0.96 * 255).toString(16).padStart(2, '0')}`);
-      centralGlow.addColorStop(0.38, `${this.color.light}${Math.round(this.opacity * pulse * 0.42 * 255).toString(16).padStart(2, '0')}`);
+      centralGlow.addColorStop(0, `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 0.96 * brightness) * 255).toString(16).padStart(2, '0')}`);
+      centralGlow.addColorStop(0.38, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.42 * brightness) * 255).toString(16).padStart(2, '0')}`);
       centralGlow.addColorStop(1, `${this.color.light}00`);
       ctx.fillStyle = centralGlow;
       ctx.beginPath();
       ctx.arc(this.x, this.y, coreRadius * 2.6, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = `${this.color.core}${Math.round(this.opacity * pulse * 255).toString(16).padStart(2, '0')}`;
+      ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * brightness) * 255).toString(16).padStart(2, '0')}`;
       ctx.beginPath();
       ctx.arc(this.x, this.y, coreRadius, 0, Math.PI * 2);
       ctx.fill();
@@ -477,6 +478,21 @@
       const depth = layer.minDepth + Math.random() * (layer.maxDepth - layer.minDepth);
       return new Mote(depth);
     }));
+
+    fairies
+      .slice()
+      .sort((first, second) => first.scale - second.scale)
+      .slice(0, 50)
+      .forEach((fairy) => {
+        fairy.isSmallest = true;
+      });
+    motes
+      .slice()
+      .sort((first, second) => first.radius - second.radius)
+      .slice(0, 100)
+      .forEach((mote) => {
+        mote.isSmallest = true;
+      });
 
     distributeByDepth(fairies, [0.012, 0.04, 0.16, 0.3, 0.48, 1], 18);
     distributeByDepth(motes, [0.006, 0.02, 0.14, 0.28, 0.45, 1], 22);
