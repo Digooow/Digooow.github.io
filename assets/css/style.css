@@ -324,6 +324,12 @@ html {
   transform: translateY(-4px);
 }
 
+.pipeline-step:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
 .step-icon-box {
   width: 72px;
   height: 72px;

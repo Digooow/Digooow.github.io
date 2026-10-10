@@ -212,7 +212,7 @@
         <div class="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
 
           <!-- Nó 1: Git Push -->
-          <div class="pipeline-step group" onclick="selectPipelineStep(1)">
+          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(1)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(1); }">
             <div class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
               <i class="fa-brands fa-git-alt text-2xl"></i>
               <span class="step-num">01</span>
@@ -225,7 +225,7 @@
           </div>
 
           <!-- Nó 2: Quality Gate -->
-          <div class="pipeline-step group" onclick="selectPipelineStep(2)">
+          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(2)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(2); }">
             <div class="step-icon-box bg-emerald-950/80 border-cyan-400/40 text-cyan-300 group-hover:border-cyan-300 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]">
               <i class="fa-solid fa-shield-virus text-2xl"></i>
               <span class="step-num">02</span>
@@ -238,7 +238,7 @@
           </div>
 
           <!-- Nó 3: Artifact Build -->
-          <div class="pipeline-step group" onclick="selectPipelineStep(3)">
+          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(3)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(3); }">
             <div class="step-icon-box bg-emerald-950/80 border-amber-400/40 text-amber-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
               <i class="fa-solid fa-box-archive text-2xl"></i>
               <span class="step-num">03</span>
@@ -251,7 +251,7 @@
           </div>
 
           <!-- Nó 4: GitHub Pages Deploy -->
-          <div class="pipeline-step group" onclick="selectPipelineStep(4)">
+          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(4)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(4); }">
             <div class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-emerald-300 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]">
               <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
               <span class="step-num">04</span>
@@ -264,7 +264,7 @@
           </div>
 
           <!-- Nó 5: Lighthouse Audit -->
-          <div class="pipeline-step group" onclick="selectPipelineStep(5)">
+          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(5)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(5); }">
             <div class="step-icon-box bg-emerald-950/80 border-teal-400/40 text-teal-300 group-hover:border-teal-300 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.5)]">
               <i class="fa-solid fa-gauge-high text-2xl"></i>
               <span class="step-num">05</span>
@@ -511,6 +511,7 @@
         <div class="px-5 py-3.5 bg-black/40 border-t border-emerald-500/20 flex items-center gap-2 font-mono text-sm">
           <span class="text-emerald-400 font-bold">digooow@kama</span>
           <span class="text-amber-400">:~$</span>
+          <label for="terminal-input" class="sr-only">Comando do terminal</label>
           <input 
             type="text" 
             id="terminal-input" 
