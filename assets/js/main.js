@@ -384,51 +384,37 @@
       const sizeScale = this.isLargest ? 0.72 : 1;
       const effectiveRadius = this.radius * sizeScale;
       const glowRadius = effectiveRadius * (4 + this.glow * 2.2);
+      const outerRadius = glowRadius * 1.37;
       const coreRadius = effectiveRadius * pulse;
-      const brightness = this.isSmallest ? 1.65 : 1.28;
+      const innerCoreRadius = coreRadius * 0.78;
+      const brightness = this.isSmallest ? 1.78 : 1.41;
       if (this.depth < 0.28) {
         ctx.fillStyle = `rgba(255, 242, 145, ${Math.min(1, this.opacity * pulse * 1.42 * brightness)})`;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, coreRadius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, innerCoreRadius, 0, Math.PI * 2);
         ctx.fill();
         return;
       }
-      const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
-      gradient.addColorStop(0, `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.08 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.08, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.92 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.22, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.44 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.45, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.12 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(0.72, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.035 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      gradient.addColorStop(1, `${this.color.light}00`);
       ctx.save();
       ctx.shadowColor = this.color.light;
       ctx.shadowBlur = this.detail ? 12 * this.glow : 0;
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
-      ctx.fill();
+      for (let layer = 0; layer < 18; layer += 1) {
+        const layerScale = 1 - layer * 0.052;
+        const layerRadius = outerRadius * layerScale;
+        const layerOpacity = Math.min(1, this.opacity * pulse * brightness * (0.111 + layer * 0.052));
+        const layerGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, layerRadius);
+        layerGradient.addColorStop(0, `${this.color.light}${Math.round(layerOpacity * 0.086 * 255).toString(16).padStart(2, '0')}`);
+        layerGradient.addColorStop(0.62, `${this.color.light}${Math.round(layerOpacity * 0.0285 * 255).toString(16).padStart(2, '0')}`);
+        layerGradient.addColorStop(1, `${this.color.light}00`);
+        ctx.fillStyle = layerGradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, layerRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-      const transitionGlow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius * 0.62);
-      transitionGlow.addColorStop(0, `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 0.34 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      transitionGlow.addColorStop(0.42, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.12 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      transitionGlow.addColorStop(1, `${this.color.light}00`);
-      ctx.fillStyle = transitionGlow;
+      ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.37 * brightness) * 255).toString(16).padStart(2, '0')}`;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, glowRadius * 0.62, 0, Math.PI * 2);
-      ctx.fill();
-
-      const centralGlow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, coreRadius * 2.6);
-      centralGlow.addColorStop(0, `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.08 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      centralGlow.addColorStop(0.38, `${this.color.light}${Math.round(Math.min(1, this.opacity * pulse * 0.56 * brightness) * 255).toString(16).padStart(2, '0')}`);
-      centralGlow.addColorStop(1, `${this.color.light}00`);
-      ctx.fillStyle = centralGlow;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, coreRadius * 2.6, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.08 * brightness) * 255).toString(16).padStart(2, '0')}`;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, coreRadius, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, innerCoreRadius, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
