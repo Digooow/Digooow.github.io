@@ -212,69 +212,69 @@
         <div class="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
 
           <!-- Nó 1: Git Push -->
-          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(1)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(1); }">
-            <div class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+          <button type="button" class="pipeline-step group" onclick="selectPipelineStep(1)">
+            <span class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
               <i class="fa-brands fa-git-alt text-2xl"></i>
               <span class="step-num">01</span>
-            </div>
-            <h3 class="font-cinzel font-bold text-base text-amber-200 mt-4 mb-1">Git Push</h3>
-            <p class="font-mono text-xs text-emerald-300/80 mb-2">Gatilho / Commit</p>
-            <p class="text-xs text-slate-300/80 leading-relaxed">
+            </span>
+            <span class="font-cinzel font-bold text-base text-amber-200 mt-4 mb-1">Git Push</span>
+            <span class="font-mono text-xs text-emerald-300/80 mb-2">Gatilho / Commit</span>
+            <span class="text-xs text-slate-300/80 leading-relaxed">
               Disparado automaticamente na branch <code class="text-amber-300">main</code>.
-            </p>
-          </div>
+            </span>
+          </button>
 
           <!-- Nó 2: Quality Gate -->
-          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(2)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(2); }">
-            <div class="step-icon-box bg-emerald-950/80 border-cyan-400/40 text-cyan-300 group-hover:border-cyan-300 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+          <button type="button" class="pipeline-step group" onclick="selectPipelineStep(2)">
+            <span class="step-icon-box bg-emerald-950/80 border-cyan-400/40 text-cyan-300 group-hover:border-cyan-300 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]">
               <i class="fa-solid fa-shield-virus text-2xl"></i>
               <span class="step-num">02</span>
-            </div>
-            <h3 class="font-cinzel font-bold text-base text-cyan-200 mt-4 mb-1">Quality Gate</h3>
-            <p class="font-mono text-xs text-cyan-300/80 mb-2">Validação HTML</p>
-            <p class="text-xs text-slate-300/80 leading-relaxed">
+            </span>
+            <span class="font-cinzel font-bold text-base text-cyan-200 mt-4 mb-1">Quality Gate</span>
+            <span class="font-mono text-xs text-cyan-300/80 mb-2">Validação HTML</span>
+            <span class="text-xs text-slate-300/80 leading-relaxed">
               Job <code class="text-cyan-300">quality-gate</code> com verificação de sintaxe e semântica.
-            </p>
-          </div>
+            </span>
+          </button>
 
           <!-- Nó 3: Artifact Build -->
-          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(3)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(3); }">
-            <div class="step-icon-box bg-emerald-950/80 border-amber-400/40 text-amber-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+          <button type="button" class="pipeline-step group" onclick="selectPipelineStep(3)">
+            <span class="step-icon-box bg-emerald-950/80 border-amber-400/40 text-amber-300 group-hover:border-amber-300 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
               <i class="fa-solid fa-box-archive text-2xl"></i>
               <span class="step-num">03</span>
-            </div>
-            <h3 class="font-cinzel font-bold text-base text-amber-200 mt-4 mb-1">Artifact Pack</h3>
-            <p class="font-mono text-xs text-amber-300/80 mb-2">Upload Artifact</p>
-            <p class="text-xs text-slate-300/80 leading-relaxed">
+            </span>
+            <span class="font-cinzel font-bold text-base text-amber-200 mt-4 mb-1">Artifact Pack</span>
+            <span class="font-mono text-xs text-amber-300/80 mb-2">Upload Artifact</span>
+            <span class="text-xs text-slate-300/80 leading-relaxed">
               Empacotamento estático via <code class="text-amber-300">upload-pages-artifact</code>.
-            </p>
-          </div>
+            </span>
+          </button>
 
           <!-- Nó 4: GitHub Pages Deploy -->
-          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(4)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(4); }">
-            <div class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-emerald-300 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+          <button type="button" class="pipeline-step group" onclick="selectPipelineStep(4)">
+            <span class="step-icon-box bg-emerald-950/80 border-emerald-400/40 text-emerald-300 group-hover:border-emerald-300 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]">
               <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
               <span class="step-num">04</span>
-            </div>
-            <h3 class="font-cinzel font-bold text-base text-emerald-200 mt-4 mb-1">Deploy Global</h3>
-            <p class="font-mono text-xs text-emerald-300/80 mb-2">Pages Edge CDN</p>
-            <p class="text-xs text-slate-300/80 leading-relaxed">
+            </span>
+            <span class="font-cinzel font-bold text-base text-emerald-200 mt-4 mb-1">Deploy Global</span>
+            <span class="font-mono text-xs text-emerald-300/80 mb-2">Pages Edge CDN</span>
+            <span class="text-xs text-slate-300/80 leading-relaxed">
               Publicação instantânea com certificado SSL automatizado.
-            </p>
-          </div>
+            </span>
+          </button>
 
           <!-- Nó 5: Lighthouse Audit -->
-          <div class="pipeline-step group" role="button" tabindex="0" onclick="selectPipelineStep(5)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPipelineStep(5); }">
-            <div class="step-icon-box bg-emerald-950/80 border-teal-400/40 text-teal-300 group-hover:border-teal-300 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.5)]">
+          <button type="button" class="pipeline-step group" onclick="selectPipelineStep(5)">
+            <span class="step-icon-box bg-emerald-950/80 border-teal-400/40 text-teal-300 group-hover:border-teal-300 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.5)]">
               <i class="fa-solid fa-gauge-high text-2xl"></i>
               <span class="step-num">05</span>
-            </div>
-            <h3 class="font-cinzel font-bold text-base text-teal-200 mt-4 mb-1">Lighthouse CI</h3>
-            <p class="font-mono text-xs text-teal-300/80 mb-2">Auditoria 100/100</p>
-            <p class="text-xs text-slate-300/80 leading-relaxed">
+            </span>
+            <span class="font-cinzel font-bold text-base text-teal-200 mt-4 mb-1">Lighthouse CI</span>
+            <span class="font-mono text-xs text-teal-300/80 mb-2">Auditoria 100/100</span>
+            <span class="text-xs text-slate-300/80 leading-relaxed">
               Auditoria de desempenho, acessibilidade e SEO pós-deploy.
-            </p>
-          </div>
+            </span>
+          </button>
 
         </div>
 
