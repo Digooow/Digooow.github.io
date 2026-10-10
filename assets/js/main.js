@@ -53,8 +53,12 @@
 
   let width = 0;
   let height = 0;
+  let renderScale = 1;
   let fairies = [];
   let motes = [];
+  let animationFrame;
+  let lastFrameTime = 0;
+  let simulationTick = 0;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const palettes = [
     { body: '#fef3c7', wing: '#fbbf24', glow: '#f59e0b' },
@@ -122,24 +126,39 @@
   }
 
   function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    renderScale = Math.min(1, (window.devicePixelRatio || 1) * 0.72);
+    canvas.width = Math.floor(width * renderScale);
+    canvas.height = Math.floor(height * renderScale);
+    ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
     fairies.forEach((fairy) => fairy.reposition());
     motes.forEach((mote) => mote.reposition());
+    distributeByDepth(fairies, [0.012, 0.04, 0.16, 0.3, 0.48, 1], 18);
+    distributeByDepth(motes, [0.006, 0.02, 0.14, 0.28, 0.45, 1], 22);
   }
 
   class Fairy {
     constructor(depth = Math.random(), paletteIndex = 0) {
       this.phase = Math.random() * Math.PI * 2;
       this.palette = createFairyPalette(paletteIndex);
-      this.scale = (0.28 + Math.random() * 0.42) * 0.9;
+      this.scale = (0.238 + Math.random() * 0.357) * 0.9;
       this.depth = depth;
-      this.scale *= 0.72 + this.depth * 0.85;
-      this.opacity = 0.22 + this.depth * 0.7;
-      this.glow = 0.55 + this.depth * 1.05 + Math.random() * 0.45;
+      const distanceScale = this.depth < 0.012
+        ? 0.24 + this.depth * 9
+        : this.depth < 0.04
+          ? 0.348 + (this.depth - 0.012) * 8.6
+          : 0.56 + this.depth * 0.72;
+      this.scale *= distanceScale;
+      const baseOpacity = (0.22 + this.depth * 0.7) * 1.82;
+      this.opacity = this.depth < 0.04
+        ? Math.min(0.82, baseOpacity + 0.28)
+        : Math.min(1, baseOpacity);
+      this.glow = (0.55 + this.depth * 1.05 + Math.random() * 0.45) * 1.1;
       this.wingSpeed = 0.018 + Math.random() * 0.055;
       this.flightSpeed = 0.045 + Math.random() * 0.19;
       this.direction = Math.random() > 0.5 ? 1 : -1;
+      this.detail = this.depth > 0.62;
       this.reposition(true);
     }
 
@@ -168,10 +187,44 @@
       const alpha = this.opacity * pulse;
       const scale = this.scale;
 
+      if (this.depth < 0.012) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = rgba(this.palette.wing, 0.78);
+        ctx.beginPath();
+        ctx.ellipse(this.x - 1.2, this.y, Math.max(0.7, scale * 8), Math.max(0.35, scale * 2.8), -0.2, 0, Math.PI * 2);
+        ctx.ellipse(this.x + 1.2, this.y, Math.max(0.7, scale * 8), Math.max(0.35, scale * 2.8), 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = rgba(this.palette.body, 0.9);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, Math.max(0.45, scale * 2.2), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.scale(this.direction * scale, scale);
       ctx.globalAlpha = alpha;
+
+      if (this.depth < 0.3) {
+        ctx.fillStyle = rgba(this.palette.wing, 0.58);
+        ctx.strokeStyle = rgba(this.palette.body, 0.5);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(-9, -3, 15, 6, -0.25, 0, Math.PI * 2);
+        ctx.ellipse(9, -3, 15, 6, 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = rgba(this.palette.body, 0.72);
+        ctx.beginPath();
+        ctx.arc(0, 1, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+      }
+
       ctx.shadowColor = rgba(this.palette.glow, 0.9);
       ctx.shadowBlur = 22 * this.glow;
 
@@ -190,12 +243,16 @@
 
       ctx.save();
       ctx.rotate(-0.22 + wingFlutter);
-      const leftWing = ctx.createRadialGradient(-22, -12, 2, -25, -12, 42);
-      leftWing.addColorStop(0, rgba(this.palette.body, 0.92));
-      leftWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
-      leftWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
-      leftWing.addColorStop(1, rgba(this.palette.glow, 0));
-      ctx.fillStyle = leftWing;
+      const leftWing = this.detail
+        ? ctx.createRadialGradient(-22, -12, 2, -25, -12, 42)
+        : null;
+      if (leftWing) {
+        leftWing.addColorStop(0, rgba(this.palette.body, 0.92));
+        leftWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
+        leftWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
+        leftWing.addColorStop(1, rgba(this.palette.glow, 0));
+      }
+      ctx.fillStyle = leftWing || rgba(this.palette.wing, 0.5);
       ctx.beginPath();
       ctx.ellipse(-25, -12, 38, 18, Math.PI / 5, 0, Math.PI * 2);
       ctx.fill();
@@ -211,12 +268,16 @@
 
       ctx.save();
       ctx.rotate(0.22 - wingFlutter);
-      const rightWing = ctx.createRadialGradient(22, -12, 2, 25, -12, 42);
-      rightWing.addColorStop(0, rgba(this.palette.body, 0.92));
-      rightWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
-      rightWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
-      rightWing.addColorStop(1, rgba(this.palette.glow, 0));
-      ctx.fillStyle = rightWing;
+      const rightWing = this.detail
+        ? ctx.createRadialGradient(22, -12, 2, 25, -12, 42)
+        : null;
+      if (rightWing) {
+        rightWing.addColorStop(0, rgba(this.palette.body, 0.92));
+        rightWing.addColorStop(0.35, rgba(this.palette.wing, 0.72));
+        rightWing.addColorStop(0.82, rgba(this.palette.glow, 0.3));
+        rightWing.addColorStop(1, rgba(this.palette.glow, 0));
+      }
+      ctx.fillStyle = rightWing || rgba(this.palette.wing, 0.5);
       ctx.beginPath();
       ctx.ellipse(25, -12, 38, 18, -Math.PI / 5, 0, Math.PI * 2);
       ctx.fill();
@@ -230,7 +291,7 @@
       ctx.stroke();
       ctx.restore();
 
-      ctx.shadowBlur = 38 * this.glow;
+      ctx.shadowBlur = this.detail ? 38 * this.glow : 8 * this.glow;
       const bodyGradient = ctx.createLinearGradient(0, -22, 0, 28);
       bodyGradient.addColorStop(0, rgba(this.palette.body, 1));
       bodyGradient.addColorStop(0.45, rgba(this.palette.wing, 0.96));
@@ -259,16 +320,18 @@
 
       ctx.strokeStyle = rgba(this.palette.wing, 0.9);
       ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.moveTo(-4, -9);
-      ctx.quadraticCurveTo(-19, -25, -40, -28);
-      ctx.moveTo(4, -9);
-      ctx.quadraticCurveTo(19, -25, 40, -28);
-      ctx.moveTo(-5, -2);
-      ctx.quadraticCurveTo(-11, 10, -24, 22);
-      ctx.moveTo(5, -2);
-      ctx.quadraticCurveTo(11, 10, 24, 22);
-      ctx.stroke();
+      if (this.detail) {
+        ctx.beginPath();
+        ctx.moveTo(-4, -9);
+        ctx.quadraticCurveTo(-19, -25, -40, -28);
+        ctx.moveTo(4, -9);
+        ctx.quadraticCurveTo(19, -25, 40, -28);
+        ctx.moveTo(-5, -2);
+        ctx.quadraticCurveTo(-11, 10, -24, 22);
+        ctx.moveTo(5, -2);
+        ctx.quadraticCurveTo(11, 10, 24, 22);
+        ctx.stroke();
+      }
 
       ctx.restore();
     }
@@ -277,11 +340,18 @@
   class Mote {
     constructor(depth = Math.random()) {
       this.phase = Math.random() * Math.PI * 2;
-      this.radius = 0.7 + Math.random() * 2.1;
+      this.radius = 0.27 + Math.random() * 0.81;
       this.depth = depth;
-      this.radius *= 0.7 + this.depth * 0.8;
-      this.opacity = 0.16 + this.depth * 0.58;
-      this.glow = 0.45 + this.depth * 0.95 + Math.random() * 0.3;
+      const distanceScale = this.depth < 0.006
+        ? 0.32 + this.depth * 20
+        : 0.44 + (this.depth - 0.006) * 19.7;
+      this.radius *= distanceScale;
+      const baseOpacity = (0.14 + this.depth * 0.48) * 1.62;
+      this.opacity = this.depth < 0.02
+        ? Math.min(0.86, baseOpacity + 0.32)
+        : Math.min(1, baseOpacity);
+      this.glow = (0.62 + this.depth * 0.9 + Math.random() * 0.34) * 1.02;
+      this.detail = this.depth > 0.62;
       this.color = Math.random() > 0.32
         ? { core: '#fff7bf', light: '#facc15' }
         : { core: '#fef08a', light: '#eab308' };
@@ -307,8 +377,15 @@
     }
 
     draw() {
-      const pulse = 0.72 + Math.sin(this.phase * 2.2) * 0.28;
-      const glowRadius = this.radius * (8 + this.glow * 5);
+      const pulse = 0.82 + Math.sin(this.phase * 2.2) * 0.18;
+      const glowRadius = this.radius * (4 + this.glow * 2.2);
+      if (this.depth < 0.28) {
+        ctx.fillStyle = `rgba(255, 223, 76, ${this.opacity * pulse})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        return;
+      }
       const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
       gradient.addColorStop(0, `${this.color.core}${Math.round(this.opacity * pulse * 255).toString(16).padStart(2, '0')}`);
       gradient.addColorStop(0.12, `${this.color.light}${Math.round(this.opacity * pulse * 0.72 * 255).toString(16).padStart(2, '0')}`);
@@ -316,7 +393,7 @@
       gradient.addColorStop(1, `${this.color.light}00`);
       ctx.save();
       ctx.shadowColor = this.color.light;
-      ctx.shadowBlur = 18 * this.glow;
+      ctx.shadowBlur = this.detail ? 12 * this.glow : 0;
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
@@ -331,45 +408,126 @@
 
   function spawnLights() {
     const isMobile = window.innerWidth < 768;
-    const distantFairies = isMobile ? 24 : 48;
-    const nearFairies = isMobile ? 2 : 4;
-    const distantMotes = isMobile ? 48 : 96;
-    const nearMotes = isMobile ? 4 : 8;
+    const fairyLayers = isMobile
+      ? [
+        { count: 54, minDepth: 0.0002, maxDepth: 0.004 },
+        { count: 44, minDepth: 0.004, maxDepth: 0.012 },
+        { count: 36, minDepth: 0.0005, maxDepth: 0.012 },
+        { count: 30, minDepth: 0.012, maxDepth: 0.04 },
+        { count: 28, minDepth: 0.04, maxDepth: 0.16 },
+        { count: 20, minDepth: 0.16, maxDepth: 0.3 },
+        { count: 11, minDepth: 0.3, maxDepth: 0.48 },
+        { count: 2, minDepth: 0.72, maxDepth: 0.9 }
+      ]
+      : [
+        { count: 112, minDepth: 0.0002, maxDepth: 0.004 },
+        { count: 92, minDepth: 0.004, maxDepth: 0.012 },
+        { count: 72, minDepth: 0.0005, maxDepth: 0.012 },
+        { count: 58, minDepth: 0.012, maxDepth: 0.04 },
+        { count: 54, minDepth: 0.04, maxDepth: 0.16 },
+        { count: 40, minDepth: 0.16, maxDepth: 0.3 },
+        { count: 22, minDepth: 0.3, maxDepth: 0.48 },
+        { count: 4, minDepth: 0.72, maxDepth: 0.92 }
+      ];
+    const moteLayers = isMobile
+      ? [
+        { count: 120, minDepth: 0.0002, maxDepth: 0.003 },
+        { count: 100, minDepth: 0.003, maxDepth: 0.006 },
+        { count: 92, minDepth: 0.0005, maxDepth: 0.006 },
+        { count: 78, minDepth: 0.006, maxDepth: 0.02 },
+        { count: 64, minDepth: 0.02, maxDepth: 0.14 },
+        { count: 44, minDepth: 0.14, maxDepth: 0.28 },
+        { count: 24, minDepth: 0.28, maxDepth: 0.45 },
+        { count: 5, minDepth: 0.72, maxDepth: 0.92 }
+      ]
+      : [
+        { count: 300, minDepth: 0.0002, maxDepth: 0.003 },
+        { count: 250, minDepth: 0.003, maxDepth: 0.006 },
+        { count: 230, minDepth: 0.0005, maxDepth: 0.006 },
+        { count: 190, minDepth: 0.006, maxDepth: 0.02 },
+        { count: 132, minDepth: 0.02, maxDepth: 0.14 },
+        { count: 96, minDepth: 0.14, maxDepth: 0.28 },
+        { count: 50, minDepth: 0.28, maxDepth: 0.45 },
+        { count: 10, minDepth: 0.72, maxDepth: 0.92 }
+      ];
 
-    fairies = [
-      ...Array.from({ length: distantFairies }, (_, index) => new Fairy(
-        0.05 + Math.random() * 0.28,
-        index
-      )),
-      ...Array.from({ length: nearFairies }, (_, index) => new Fairy(
-        0.68 + Math.random() * 0.32,
-        distantFairies + index
-      ))
-    ];
-    motes = [
-      ...Array.from({ length: distantMotes }, () => new Mote(0.03 + Math.random() * 0.3)),
-      ...Array.from({ length: nearMotes }, () => new Mote(0.7 + Math.random() * 0.3))
-    ];
+    let fairyIndex = 0;
+    fairies = fairyLayers.flatMap((layer) => Array.from({ length: layer.count }, () => {
+      const depth = layer.minDepth + Math.random() * (layer.maxDepth - layer.minDepth);
+      const fairy = new Fairy(depth, fairyIndex);
+      fairyIndex += 1;
+      return fairy;
+    }));
+    motes = moteLayers.flatMap((layer) => Array.from({ length: layer.count }, () => {
+      const depth = layer.minDepth + Math.random() * (layer.maxDepth - layer.minDepth);
+      return new Mote(depth);
+    }));
+
+    distributeByDepth(fairies, [0.012, 0.04, 0.16, 0.3, 0.48, 1], 18);
+    distributeByDepth(motes, [0.006, 0.02, 0.14, 0.28, 0.45, 1], 22);
+  }
+
+  function distributeByDepth(elements, boundaries, preferredColumns) {
+    let minimumDepth = 0;
+    boundaries.forEach((maximumDepth) => {
+      const layer = elements.filter((element) =>
+        element.depth >= minimumDepth && element.depth < maximumDepth
+      );
+      distributeUniformly(layer, preferredColumns);
+      minimumDepth = maximumDepth;
+    });
+  }
+
+  function distributeUniformly(elements, preferredColumns) {
+    if (!elements.length || !width || !height) return;
+
+    const columns = Math.max(1, Math.min(preferredColumns, Math.ceil(Math.sqrt(
+      elements.length * width / Math.max(height - 38, 1)
+    ))));
+    const rows = Math.ceil(elements.length / columns);
+    const cellWidth = width / columns;
+    const cellHeight = Math.max(height - 38, 1) / rows;
+
+    elements.forEach((element, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const jitterX = (Math.random() - 0.5) * cellWidth * 0.72;
+      const jitterY = (Math.random() - 0.5) * cellHeight * 0.72;
+
+      element.x = Math.max(-20, Math.min(width + 20, (column + 0.5) * cellWidth + jitterX));
+      element.y = Math.max(38, Math.min(height + 10, 38 + (row + 0.5) * cellHeight + jitterY));
+    });
   }
   resize();
   spawnLights();
   window.addEventListener('resize', resize, { passive: true });
 
   function loop() {
+    animationFrame = requestAnimationFrame(loop);
+    if (reducedMotion.matches || document.hidden) return;
+
+    const now = performance.now();
+    if (now - lastFrameTime < 33) return;
+    lastFrameTime = now;
+    simulationTick += 1;
     ctx.clearRect(0, 0, width, height);
-    if (!reducedMotion.matches) {
-      for (const fairy of fairies) {
-        fairy.update();
-        fairy.draw();
-      }
-      for (const mote of motes) {
-        mote.update();
-        mote.draw();
-      }
-      requestAnimationFrame(loop);
+    for (const fairy of fairies) {
+      if (fairy.depth >= 0.3 || simulationTick % 2 === 0) fairy.update();
+      fairy.draw();
+    }
+    for (const mote of motes) {
+      if (mote.depth >= 0.28 || simulationTick % 2 === 0) mote.update();
+      mote.draw();
     }
   }
   loop();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      lastFrameTime = 0;
+      cancelAnimationFrame(animationFrame);
+      loop();
+    }
+  });
 })();
 
 // ─── 3. INTERATIVIDADE DA PIPELINE CI/CD ─────────────────────────────────
