@@ -317,6 +317,12 @@ html {
   align-items: center;
   text-align: center;
   cursor: pointer;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   transition: transform 0.3s ease;
 }
 
