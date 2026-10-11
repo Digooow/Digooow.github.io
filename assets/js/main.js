@@ -9,9 +9,12 @@
 
 // ─── 1. TRANSIÇÃO DINÂMICA DE IMAGENS DE FUNDO CONFORME O SCROLL ────────
 (function initBackgroundSwitcher() {
+  // Obtém todos os painéis de imagem que serão alternados durante a rolagem.
   const slides = document.querySelectorAll('.bg-slide');
+  // Interrompe a inicialização quando a página não possui painéis de fundo.
   if (!slides.length) return;
 
+  // Relaciona cada seção do documento ao índice da imagem correspondente.
   const sections = [
     { id: 'home',      index: 0 }, // kamasylvia-fairies.jpg
     { id: 'pipeline',  index: 1 }, // grana-gazebo.jpg
@@ -21,16 +24,21 @@
   ];
 
   function updateBackground() {
+    // Usa um ponto um pouco abaixo do topo da janela para detectar a seção ativa.
     const scrollPos = window.scrollY + window.innerHeight * 0.45;
 
+    // Começa com o primeiro fundo como opção padrão.
     let activeIndex = 0;
     for (const sec of sections) {
+      // Localiza a seção referenciada pelo mapa.
       const el = document.getElementById(sec.id);
+      // Avança o fundo quando a seção já alcançou o ponto de leitura.
       if (el && scrollPos >= el.offsetTop) {
         activeIndex = sec.index;
       }
     }
 
+    // Ativa somente o painel correspondente à seção atual.
     slides.forEach((slide, idx) => {
       if (idx === activeIndex) {
         slide.classList.add('active');
@@ -40,14 +48,18 @@
     });
   }
 
+  // Atualiza o fundo sem bloquear a rolagem do navegador.
   window.addEventListener('scroll', updateBackground, { passive: true });
+  // Define o fundo correto antes da primeira interação do usuário.
   updateBackground();
 })();
 
 // ─── 2. FADAS E LUZES AMBIENTAIS ──────────────────────────────────────────
 (function initFairyCanvas() {
+  // Busca o canvas usado para desenhar as fadas e partículas luminosas.
   const canvas = document.getElementById('fairy-canvas');
   if (!canvas) return;
+  // Obtém o contexto 2D necessário para os desenhos.
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -59,7 +71,9 @@
   let animationFrame;
   let lastFrameTime = 0;
   let simulationTick = 0;
+  // Respeita a preferência do sistema para reduzir animações.
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Define as cores-base usadas pelas diferentes famílias de fadas.
   const palettes = [
     { body: '#fef3c7', wing: '#fbbf24', glow: '#f59e0b' },
     { body: '#d1fae5', wing: '#34d399', glow: '#10b981' },
@@ -84,7 +98,9 @@
   ];
 
   function createFairyPalette(index) {
+    // Distribui os matizes de maneira determinística para evitar cores repetidas.
     const hue = (index * 137.508 + (index % palettes.length) * 3.7) % 360;
+    // Varia a saturação para criar pequenas diferenças entre partículas.
     const saturation = 98 + (index % 4) * 4;
     const bodyLightness = 88 - (index % 3) * 4;
     const wingLightness = 88 + (index % 4) * 4;
@@ -97,6 +113,7 @@
   }
 
   function hslToRgb(hue, saturation, lightness) {
+    // Converte os valores HSL normalizados para RGB.
     const s = saturation / 100;
     const l = lightness / 100;
     const chroma = (1 - Math.abs(2 * l - 1)) * s;
@@ -107,6 +124,7 @@
     let green = 0;
     let blue = 0;
 
+    // Seleciona o setor do círculo cromático correspondente ao matiz.
     if (segment < 1) [red, green, blue] = [chroma, x, 0];
     else if (segment < 2) [red, green, blue] = [x, chroma, 0];
     else if (segment < 3) [red, green, blue] = [0, chroma, x];
@@ -122,16 +140,20 @@
   }
 
   function rgba(color, alpha) {
+    // Formata uma cor RGB e sua transparência para o Canvas 2D.
     return `rgba(${color.red}, ${color.green}, ${color.blue}, ${alpha})`;
   }
 
   function resize() {
+    // Atualiza as dimensões lógicas conforme o viewport atual.
     width = window.innerWidth;
     height = window.innerHeight;
+    // Limita a escala de renderização para equilibrar nitidez e desempenho.
     renderScale = Math.min(1, (window.devicePixelRatio || 1) * 0.72);
     canvas.width = Math.floor(width * renderScale);
     canvas.height = Math.floor(height * renderScale);
     ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
+    // Reposiciona os objetos para preencher o novo espaço disponível.
     fairies.forEach((fairy) => fairy.reposition());
     motes.forEach((mote) => mote.reposition());
     distributeByDepth(fairies, [0.012, 0.04, 0.16, 0.3, 0.48, 1], 18);
@@ -140,9 +162,12 @@
 
   class Fairy {
     constructor(depth = Math.random(), paletteIndex = 0) {
+      // Cria a fase inicial para que cada fada pulse em um ritmo diferente.
       this.phase = Math.random() * Math.PI * 2;
+      // Escolhe a paleta visual da fada.
       this.palette = createFairyPalette(paletteIndex);
       this.scale = (0.5 + Math.random() * 0.357) * 0.9 * 1.2;
+      // Guarda a profundidade, usada para simular perspectiva.
       this.depth = depth;
       let distanceScale;
       if (this.depth < 0.012) {
@@ -156,6 +181,7 @@
       } else {
         distanceScale = 0.56 + this.depth * 1.22;
       }
+      // Ajusta o tamanho aparente conforme a distância simulada.
       this.scale *= distanceScale;
       const baseOpacity = (0.82 + this.depth * 0.9) * 1.82;
       this.opacity = this.depth < 0.8
@@ -166,35 +192,43 @@
       this.flightSpeed = 0.045 + Math.random() * 0.59;
       this.direction = Math.random() > 0.5 ? 1 : -1;
       this.detail = this.depth > 1000.012;
+      // Distribui a fada inicialmente pelo viewport.
       this.reposition(true);
     }
 
     reposition(initial = false) {
+      // Sorteia a posição horizontal e vertical da fada.
       this.x = Math.random() * width;
       this.y = 38 + Math.random() * Math.max(1, height - 38);
       this.vx = this.flightSpeed * this.direction;
       this.vy = (Math.random() - 0.5) * 0.12;
       this.drift = 0.2 + Math.random() * 0.55;
+      // Mantém algumas fadas já em movimento ao iniciar a animação.
       this.life = initial ? Math.random() * 1000 : 0;
     }
 
     update() {
+      // Avança o relógio individual da fada.
       this.life += 1;
       this.phase += 0.009 + this.flightSpeed * 0.025;
       this.x += this.vx + Math.sin(this.phase * 1.7) * this.drift * 0.12;
       this.y += this.vy + Math.cos(this.phase) * this.drift * 0.08;
 
+      // Reinsere a fada quando ela sai completamente da área visível.
       if (this.x < -80 || this.x > width + 80 || this.y < 38 || this.y > height + 30) {
         this.reposition();
       }
     }
 
     draw() {
+      // Calcula a pulsação e a transparência do frame atual.
       const pulse = 0.78 + Math.sin(this.phase * 2) * 0.18;
       const alpha = Math.min(1, this.opacity * pulse * (this.isSmallest ? 1.31 : 1.03));
       const scale = this.scale * (this.isSmallest ? 1.3 : 1);
 
+      // Fadas muito distantes usam uma forma simples e barata de renderizar.
       if (this.depth < 0.012) {
+        // Isola transformações e estilos para não afetar os próximos objetos.
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.fillStyle = rgba(this.palette.wing, 0.78);
@@ -215,6 +249,7 @@
       ctx.scale(this.direction * scale, scale);
       ctx.globalAlpha = alpha;
 
+      // Fadas intermediárias usam asas simplificadas para reduzir o custo.
       if (this.depth < 0.3) {
         ctx.fillStyle = rgba(this.palette.wing, 0.78);
         ctx.strokeStyle = rgba(this.palette.body, 0.7);
@@ -232,6 +267,7 @@
         return;
       }
 
+      // Fadas próximas recebem aura, asas detalhadas e corpo completo.
       ctx.shadowColor = rgba(this.palette.glow, 0.9);
       ctx.shadowBlur = 22 * this.glow;
 
@@ -346,12 +382,15 @@
 
   class Mote {
     constructor(depth = Math.random()) {
+      // Define uma fase independente para a pulsação da partícula.
       this.phase = Math.random() * Math.PI * 2;
+      // Sorteia o raio base antes do ajuste de perspectiva.
       this.radius = 0.27 + Math.random() * 0.81;
       this.depth = depth;
       const distanceScale = this.depth < 0.06
         ? 0.32 + this.depth * 20
         : 0.44 + (this.depth - 0.006) * 19.7;
+      // Faz partículas distantes parecerem menores.
       this.radius *= distanceScale;
       const baseOpacity = (0.14 + this.depth * 0.48) * 1.62;
       this.opacity = this.depth < 0.02
@@ -359,6 +398,7 @@
         : Math.min(1, baseOpacity);
       this.glow = (0.62 + this.depth * 0.9 + Math.random() * 0.34) * 1.02;
       this.detail = this.depth > 0.62;
+      // Alterna entre duas variações de dourado.
       this.color = Math.random() > 0.32
         ? { core: '#fff7bf', light: '#facc15' }
         : { core: '#fef08a', light: '#eab308' };
@@ -366,6 +406,7 @@
     }
 
     reposition(initial = false) {
+      // Coloca a partícula em uma posição aleatória do canvas.
       this.x = Math.random() * width;
       this.y = 38 + Math.random() * Math.max(1, height - 38);
       this.vx = (Math.random() - 0.5) * 0.18;
@@ -374,6 +415,7 @@
     }
 
     update() {
+      // Atualiza o tempo e o deslocamento suave da partícula.
       this.life += 1;
       this.phase += 0.01;
       this.x += this.vx + Math.sin(this.phase * 1.5) * 0.04;
@@ -384,6 +426,7 @@
     }
 
     draw() {
+      // Calcula a pulsação atual e os raios derivados da partícula.
       const pulse = 0.82 + Math.sin(this.phase * 2.2) * 0.18;
       const sizeScale = this.isLargest ? 0.52 : 1;
       const effectiveRadius = this.radius * sizeScale * 1.2;
@@ -392,6 +435,7 @@
       const coreRadius = effectiveRadius * pulse;
       const innerCoreRadius = coreRadius * 0.98;
       const brightness = this.isSmallest ? 3.82 : 1.84;
+      // Partículas muito distantes são desenhadas apenas como pontos.
       if (this.depth < 0.15) {
         ctx.fillStyle = `rgba(255, 242, 145, ${Math.min(1, this.opacity * pulse * 1.42 * brightness)})`;
         ctx.beginPath();
@@ -399,9 +443,11 @@
         ctx.fill();
         return;
       }
+      // Preserva o estado do contexto durante as camadas de brilho.
       ctx.save();
       ctx.shadowColor = this.color.light;
       ctx.shadowBlur = this.detail ? 12 * this.glow : 0;
+      // Sobrepõe camadas concêntricas para criar uma transição natural.
       for (let layer = 0; layer < 19; layer += 1) {
         const layerScale = 1 - layer * 0.052;
         const layerRadius = outerRadius * layerScale;
@@ -416,6 +462,7 @@
         ctx.fill();
       }
 
+      // Desenha o núcleo sólido por último para manter a fonte luminosa definida.
       ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.4 * brightness) * 255).toString(16).padStart(2, '0')}`;
       ctx.beginPath();
       ctx.arc(this.x, this.y, innerCoreRadius, 0, Math.PI * 2);
@@ -425,6 +472,7 @@
   }
 
   function spawnLights() {
+    // Usa menos objetos em telas pequenas para preservar o desempenho.
     const isMobile = window.innerWidth < 768;
     const fairyLayers = isMobile
       ? [
@@ -469,6 +517,7 @@
         { count: 10, minDepth: 0.72, maxDepth: 0.92 }
       ];
 
+    // Cria as fadas distribuídas pelas faixas de profundidade.
     let fairyIndex = 0;
     fairies = fairyLayers.flatMap((layer) => Array.from({ length: layer.count }, () => {
       const depth = layer.minDepth + Math.random() * (layer.maxDepth - layer.minDepth);
@@ -476,11 +525,13 @@
       fairyIndex += 1;
       return fairy;
     }));
+    // Cria as partículas luminosas com a mesma estratégia de profundidade.
     motes = moteLayers.flatMap((layer) => Array.from({ length: layer.count }, () => {
       const depth = layer.minDepth + Math.random() * (layer.maxDepth - layer.minDepth);
       return new Mote(depth);
     }));
 
+    // Marca individualmente as 50 menores fadas para um reforço visual.
     fairies
       .slice()
       .sort((first, second) => first.scale - second.scale)
@@ -488,6 +539,7 @@
       .forEach((fairy) => {
         fairy.isSmallest = true;
       });
+    // Marca individualmente as 100 menores partículas.
     motes
       .slice()
       .sort((first, second) => first.radius - second.radius)
@@ -495,6 +547,7 @@
       .forEach((mote) => {
         mote.isSmallest = true;
       });
+    // Marca as 10 maiores partículas para reduzir seu tamanho aparente.
     motes
       .slice()
       .sort((first, second) => second.radius - first.radius)
@@ -508,6 +561,7 @@
   }
 
   function distributeByDepth(elements, boundaries, preferredColumns) {
+    // Percorre cada faixa de profundidade e distribui seus elementos.
     let minimumDepth = 0;
     boundaries.forEach((maximumDepth) => {
       const layer = elements.filter((element) =>
@@ -519,8 +573,10 @@
   }
 
   function distributeUniformly(elements, preferredColumns) {
+    // Evita cálculos quando não há elementos ou dimensões válidas.
     if (!elements.length || !width || !height) return;
 
+    // Calcula uma grade proporcional ao número de elementos e ao viewport.
     const columns = Math.max(1, Math.min(preferredColumns, Math.ceil(Math.sqrt(
       elements.length * width / Math.max(height - 38, 1)
     ))));
@@ -528,6 +584,7 @@
     const cellWidth = width / columns;
     const cellHeight = Math.max(height - 38, 1) / rows;
 
+    // Posiciona cada elemento em uma célula com jitter natural.
     elements.forEach((element, index) => {
       const column = index % columns;
       const row = Math.floor(index / columns);
@@ -538,18 +595,22 @@
       element.y = Math.max(38, Math.min(height + 10, 38 + (row + 0.5) * cellHeight + jitterY));
     });
   }
+  // Inicializa dimensões, objetos e distribuição antes do primeiro frame.
   resize();
   spawnLights();
   window.addEventListener('resize', resize, { passive: true });
 
   function loop() {
+    // Agenda continuamente o próximo frame da animação.
     animationFrame = requestAnimationFrame(loop);
     if (reducedMotion.matches || document.hidden) return;
 
     const now = performance.now();
+    // Limita a renderização a aproximadamente 30 FPS.
     if (now - lastFrameTime < 33) return;
     lastFrameTime = now;
     simulationTick += 1;
+    // Limpa o frame anterior antes de redesenhar todas as luzes.
     ctx.clearRect(0, 0, width, height);
     for (const fairy of fairies) {
       if (fairy.depth >= 0.3 || simulationTick % 2 === 0) fairy.update();
@@ -560,8 +621,10 @@
       mote.draw();
     }
   }
+  // Inicia o ciclo principal do canvas.
   loop();
   document.addEventListener('visibilitychange', () => {
+    // Reinicia o relógio ao retornar para a aba.
     if (!document.hidden) {
       lastFrameTime = 0;
       cancelAnimationFrame(animationFrame);
@@ -572,6 +635,7 @@
 
 // ─── 3. INTERATIVIDADE DA PIPELINE CI/CD ─────────────────────────────────
 window.selectPipelineStep = function(stepNum) {
+  // Mantém os detalhes exibidos para cada etapa da pipeline.
   const stepsData = {
     1: {
       name: '01 - Git Push (Disparo)',
@@ -600,6 +664,7 @@ window.selectPipelineStep = function(stepNum) {
     }
   };
 
+  // Recupera a etapa solicitada e ignora índices inexistentes.
   const info = stepsData[stepNum];
   if (!info) return;
 
@@ -626,10 +691,12 @@ window.selectPipelineStep = function(stepNum) {
 
 // ─── 4. TERMINAL ARCANO (CLI INTERATIVO) ─────────────────────────────────
 (function initTerminal() {
+  // Localiza a saída e o campo de entrada do terminal visual.
   const output = document.getElementById('terminal-output');
   const input = document.getElementById('terminal-input');
   if (!output || !input) return;
 
+  // Mapeia cada comando para uma função que produz suas linhas de resposta.
   const COMMANDS = {
     help: () => [
       { text: '✦ GRIMÓRIO KAMASYLVIA CLI — Comandos:', cls: 'text-amber-300 font-bold' },
@@ -677,31 +744,36 @@ window.selectPipelineStep = function(stepNum) {
     ],
 
     clear: () => {
+      // Remove todo o conteúdo anterior do terminal.
       output.innerHTML = '';
       return [];
     }
   };
 
   function appendLines(lines) {
+    // Converte as linhas da resposta em elementos HTML seguros.
     lines.forEach(item => {
       const p = document.createElement('p');
       p.className = `leading-relaxed ${item.cls || 'text-slate-200'}`;
       p.textContent = item.text;
       output.appendChild(p);
     });
+    // Mantém a resposta mais recente visível.
     output.scrollTop = output.scrollHeight;
   }
 
   function handleCommand(cmdRaw) {
+    // Normaliza espaços e capitalização para localizar o comando.
     const cmd = cmdRaw.trim().toLowerCase();
     if (!cmd) return;
 
-    // Eco do comando
+    // Mostra no terminal o comando digitado pelo usuário.
     const eco = document.createElement('p');
     eco.className = 'text-slate-400 mt-2';
     eco.innerHTML = `<span class="text-emerald-400 font-bold">digooow@kama</span>:<span class="text-amber-400">~$</span> ${cmdRaw}`;
     output.appendChild(eco);
 
+    // Executa o comando conhecido ou informa que ele não existe.
     if (COMMANDS[cmd]) {
       const res = COMMANDS[cmd]();
       appendLines(res);
@@ -713,6 +785,7 @@ window.selectPipelineStep = function(stepNum) {
   }
 
   input.addEventListener('keydown', (e) => {
+    // Executa o comando quando o usuário pressiona Enter.
     if (e.key === 'Enter') {
       handleCommand(input.value);
       input.value = '';
@@ -720,6 +793,7 @@ window.selectPipelineStep = function(stepNum) {
   });
 
   window.runQuickCommand = function(cmd) {
+    // Permite que atalhos externos executem comandos rapidamente.
     handleCommand(cmd);
     input.focus();
   };
@@ -732,15 +806,18 @@ window.selectPipelineStep = function(stepNum) {
 })();
 
 // ─── 5. MENU MOBILE ──────────────────────────────────────────────────────
+// Obtém os elementos que controlam o menu responsivo.
 const menuBtn = document.getElementById('menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
 
 if (menuBtn && mobileMenu) {
+  // Alterna a visibilidade do menu no toque ou clique.
   menuBtn.addEventListener('click', () => {
     mobileMenu.classList.toggle('hidden');
   });
 }
 
 window.closeMobileMenu = function() {
+  // Fecha o menu quando um link é selecionado.
   if (mobileMenu) mobileMenu.classList.add('hidden');
 };
