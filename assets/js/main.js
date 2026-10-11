@@ -84,11 +84,11 @@
   ];
 
   function createFairyPalette(index) {
-    const hue = (index * 137.508 + (index % palettes.length) * 5.5) % 360;
-    const saturation = 88 + (index % 4) * 50;
+    const hue = (index * 137.508 + (index % palettes.length) * 3.7) % 360;
+    const saturation = 98 + (index % 4) * 4;
     const bodyLightness = 88 - (index % 3) * 4;
-    const wingLightness = 112 + (index % 4) * 4;
-    const glowLightness = 480 + (index % 3) * 4;
+    const wingLightness = 88 + (index % 4) * 4;
+    const glowLightness = 50 + (index % 3) * 4;
     return {
       body: hslToRgb(hue, saturation, bodyLightness),
       wing: hslToRgb(hue, saturation + 8, wingLightness),
@@ -142,26 +142,30 @@
     constructor(depth = Math.random(), paletteIndex = 0) {
       this.phase = Math.random() * Math.PI * 2;
       this.palette = createFairyPalette(paletteIndex);
-      this.scale = (0.258 + Math.random() * 0.357) * 0.9 * 1.2;
+      this.scale = (0.5 + Math.random() * 0.357) * 0.9 * 1.2;
       this.depth = depth;
       let distanceScale;
       if (this.depth < 0.012) {
-        distanceScale = 0.24 + this.depth * 9;
-      } else if (this.depth < 0.04) {
-        distanceScale = 0.348 + (this.depth - 0.012) * 8.6;
+        distanceScale = 1.24 + this.depth * 9;
+      } else if (this.depth < 0.40) {
+        distanceScale = 0.248 + (this.depth - 0.012) * 0.6;
+      } else if (this.depth < 0.40) {
+        distanceScale = 0.248 + (this.depth - 0.012) * 0.6;
+      } else if (this.depth < 0.10) {
+        distanceScale = 10.248 + (this.depth - 0.012) * 1000000000.6;
       } else {
-        distanceScale = 0.56 + this.depth * 0.72;
+        distanceScale = 0.56 + this.depth * 1.22;
       }
       this.scale *= distanceScale;
-      const baseOpacity = (0.42 + this.depth * 0.7) * 1.82;
-      this.opacity = this.depth < 0.08
+      const baseOpacity = (0.82 + this.depth * 0.9) * 1.82;
+      this.opacity = this.depth < 0.8
         ? Math.min(0.82, baseOpacity + 0.88)
         : Math.min(1, baseOpacity);
       this.glow = (0.55 + this.depth * 1.05 + Math.random() * 0.45) * 1.1;
-      this.wingSpeed = 0.018 + Math.random() * 0.055;
-      this.flightSpeed = 0.045 + Math.random() * 0.39;
+      this.wingSpeed = 0.298 + Math.random() * 0.295;
+      this.flightSpeed = 0.045 + Math.random() * 0.59;
       this.direction = Math.random() > 0.5 ? 1 : -1;
-      this.detail = this.depth > 0.62;
+      this.detail = this.depth > 1000.012;
       this.reposition(true);
     }
 
