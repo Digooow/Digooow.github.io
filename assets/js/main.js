@@ -84,11 +84,11 @@
   ];
 
   function createFairyPalette(index) {
-    const hue = (index * 137.508 + (index % palettes.length) * 3.5) % 360;
-    const saturation = 68 + (index % 4) * 5;
+    const hue = (index * 137.508 + (index % palettes.length) * 5.5) % 360;
+    const saturation = 88 + (index % 4) * 50;
     const bodyLightness = 88 - (index % 3) * 4;
-    const wingLightness = 62 + (index % 4) * 4;
-    const glowLightness = 48 + (index % 3) * 5;
+    const wingLightness = 112 + (index % 4) * 4;
+    const glowLightness = 480 + (index % 3) * 4;
     return {
       body: hslToRgb(hue, saturation, bodyLightness),
       wing: hslToRgb(hue, saturation + 8, wingLightness),
@@ -142,7 +142,7 @@
     constructor(depth = Math.random(), paletteIndex = 0) {
       this.phase = Math.random() * Math.PI * 2;
       this.palette = createFairyPalette(paletteIndex);
-      this.scale = (0.238 + Math.random() * 0.357) * 0.9;
+      this.scale = (0.258 + Math.random() * 0.357) * 0.9 * 1.2;
       this.depth = depth;
       let distanceScale;
       if (this.depth < 0.012) {
@@ -153,13 +153,13 @@
         distanceScale = 0.56 + this.depth * 0.72;
       }
       this.scale *= distanceScale;
-      const baseOpacity = (0.22 + this.depth * 0.7) * 1.82;
-      this.opacity = this.depth < 0.04
-        ? Math.min(0.82, baseOpacity + 0.28)
+      const baseOpacity = (0.42 + this.depth * 0.7) * 1.82;
+      this.opacity = this.depth < 0.08
+        ? Math.min(0.82, baseOpacity + 0.88)
         : Math.min(1, baseOpacity);
       this.glow = (0.55 + this.depth * 1.05 + Math.random() * 0.45) * 1.1;
       this.wingSpeed = 0.018 + Math.random() * 0.055;
-      this.flightSpeed = 0.045 + Math.random() * 0.19;
+      this.flightSpeed = 0.045 + Math.random() * 0.39;
       this.direction = Math.random() > 0.5 ? 1 : -1;
       this.detail = this.depth > 0.62;
       this.reposition(true);
@@ -187,7 +187,7 @@
 
     draw() {
       const pulse = 0.78 + Math.sin(this.phase * 2) * 0.18;
-      const alpha = Math.min(1, this.opacity * pulse * (this.isSmallest ? 1.28 : 1));
+      const alpha = Math.min(1, this.opacity * pulse * (this.isSmallest ? 1.31 : 1.03));
       const scale = this.scale * (this.isSmallest ? 1.3 : 1);
 
       if (this.depth < 0.012) {
@@ -345,7 +345,7 @@
       this.phase = Math.random() * Math.PI * 2;
       this.radius = 0.27 + Math.random() * 0.81;
       this.depth = depth;
-      const distanceScale = this.depth < 0.006
+      const distanceScale = this.depth < 0.06
         ? 0.32 + this.depth * 20
         : 0.44 + (this.depth - 0.006) * 19.7;
       this.radius *= distanceScale;
@@ -381,14 +381,14 @@
 
     draw() {
       const pulse = 0.82 + Math.sin(this.phase * 2.2) * 0.18;
-      const sizeScale = this.isLargest ? 0.72 : 1;
-      const effectiveRadius = this.radius * sizeScale;
+      const sizeScale = this.isLargest ? 0.52 : 1;
+      const effectiveRadius = this.radius * sizeScale * 1.2;
       const glowRadius = effectiveRadius * (4 + this.glow * 2.2);
-      const outerRadius = glowRadius * 1.37;
+      const outerRadius = glowRadius * 1.97;
       const coreRadius = effectiveRadius * pulse;
-      const innerCoreRadius = coreRadius * 0.78;
-      const brightness = this.isSmallest ? 1.78 : 1.41;
-      if (this.depth < 0.28) {
+      const innerCoreRadius = coreRadius * 0.98;
+      const brightness = this.isSmallest ? 3.82 : 1.84;
+      if (this.depth < 0.15) {
         ctx.fillStyle = `rgba(255, 242, 145, ${Math.min(1, this.opacity * pulse * 1.42 * brightness)})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, innerCoreRadius, 0, Math.PI * 2);
@@ -398,7 +398,7 @@
       ctx.save();
       ctx.shadowColor = this.color.light;
       ctx.shadowBlur = this.detail ? 12 * this.glow : 0;
-      for (let layer = 0; layer < 18; layer += 1) {
+      for (let layer = 0; layer < 19; layer += 1) {
         const layerScale = 1 - layer * 0.052;
         const layerRadius = outerRadius * layerScale;
         const layerOpacity = Math.min(1, this.opacity * pulse * brightness * (0.111 + layer * 0.052));
@@ -412,7 +412,7 @@
         ctx.fill();
       }
 
-      ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.37 * brightness) * 255).toString(16).padStart(2, '0')}`;
+      ctx.fillStyle = `${this.color.core}${Math.round(Math.min(1, this.opacity * pulse * 1.4 * brightness) * 255).toString(16).padStart(2, '0')}`;
       ctx.beginPath();
       ctx.arc(this.x, this.y, innerCoreRadius, 0, Math.PI * 2);
       ctx.fill();
