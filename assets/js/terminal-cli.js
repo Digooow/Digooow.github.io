@@ -110,13 +110,17 @@ export function initTerminalAndPipeline() {
     repos: async () => {
       try {
         const repos = await fetchAllUserRepos();
+        const forkCount = repos.filter(r => r.isFork).length;
+        const sourceCount = repos.length - forkCount;
         const lines = [
-          { text: `✦ Catálogo Completo (${repos.length} repositórios públicos em github.com/Digooow):`, cls: 'text-amber-300 font-bold' }
+          { text: `✦ Catálogo Completo (${repos.length} repositórios: ${sourceCount} autorais, ${forkCount} forks):`, cls: 'text-amber-300 font-bold' }
         ];
         repos.forEach(r => {
+          const originTag = r.isFork ? '[Fork] ' : '';
+          const langTag = r.language ? `[${r.language}]` : '[Multi-stack]';
           lines.push({
-            text: `  • ${r.name} [${r.language || 'Multi-stack'}] — ${r.size} (Push: ${r.updatedAt})`,
-            cls: 'text-emerald-300'
+            text: `  • ${originTag}${r.name} ${langTag} — ${r.size} (Push: ${r.updatedAt})`,
+            cls: r.isFork ? 'text-amber-200' : 'text-emerald-300'
           });
         });
         return lines;

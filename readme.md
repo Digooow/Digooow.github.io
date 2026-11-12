@@ -10,8 +10,9 @@ A página foi estruturada como uma jornada narrativa dividida em **cinco capítu
 
 Mesmo sendo hospedada em um ambiente 100% estático (**GitHub Pages**), a aplicação atua como um painel vivo do ecossistema do autor no GitHub:
 
-- **Sincronização Completa de Repositórios:** Consulta a API pública do GitHub (`/users/Digooow/repos`) para listar **todos os repositórios públicos** da conta, criando automaticamente cards dinâmicos no Bento Grid para novos projetos assim que são publicados.
-- **Detalhamento Multi-Linguagem por Projeto:** Consulta o endpoint `/repos/Digooow/{repo}/languages` de cada repositório para exibir **todas as linguagens de programação utilizadas**, calculando suas proporções em porcentagem e renderizando uma barra visual multicolorida em cada card.
+- **Sincronização Completa de Repositórios (Autorais & Forks):** Consulta paginada na API pública do GitHub (`/users/Digooow/repos?type=owner`) para listar **todos os repositórios públicos** da conta, incluindo **forks** identificados com badge próprio e filtros interativos (`Todos`, `Autorais` e `Forks`).
+- **Detalhamento Multi-Linguagem por Projeto:** Consulta o endpoint `/repos/Digooow/{repo}/languages` com cache vinculado ao `pushed_at` para exibir **todas as linguagens de programação utilizadas**, calculando suas proporções em porcentagem e renderizando uma barra visual multicolorida em cada card.
+- **Resiliência a Rate-Limit:** Controle em lotes de concorrência e *fallback* automático para cache local caso o limite de requisições anônimas da GitHub API seja atingido.
 - **Telemetria Real da Pipeline CI/CD:** Hidrata o cabeçalho e o painel da esteira com o número real da última execução (`Run #`), hash curto do commit (`SHA`), duração do build e status do workflow (`/actions/runs`).
 - **Console CLI Assíncrono:** Um terminal interativo no navegador com suporte a autocompletar (`Tab`), histórico de comandos (`↑` / `↓`) e comandos que executam diagnósticos reais de rede (`ping`), runtime/DOM (`inspect`), histórico de commits (`git log`) e catálogo de repositórios (`repos`).
 
