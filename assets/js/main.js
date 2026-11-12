@@ -7,11 +7,13 @@
 import { initBackgroundSwitcher } from './background-switcher.js';
 import { initFairyCanvas } from './canvas-engine.js';
 import { initTerminalAndPipeline } from './terminal-cli.js';
+import { initGitHubTelemetry } from './github-telemetry.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initBackgroundSwitcher();
   initFairyCanvas();
   initTerminalAndPipeline();
+  initGitHubTelemetry();
 
   // Menu Mobile
   const menuBtn = document.getElementById('menu-btn');

@@ -12,6 +12,14 @@ html {
   scroll-behavior: smooth;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+p, blockquote, li {
+  text-wrap: pretty;
+}
+
 ::selection {
   background-color: rgba(245, 158, 11, 0.35);
   color: #fef08a;
@@ -373,17 +381,26 @@ html {
 }
 
 #terminal-output {
+  --scrollbar-thumb: rgba(16, 185, 129, 0.35);
+  --scrollbar-track: transparent;
   scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-#terminal-output::-webkit-scrollbar {
-  width: 5px;
-}
+@supports not (scrollbar-color: auto) {
+  #terminal-output::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
-#terminal-output::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.3);
-  border-radius: 4px;
+  #terminal-output::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  #terminal-output::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
 }
 
 .cmd-pill {
