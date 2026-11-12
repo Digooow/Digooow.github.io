@@ -1,127 +1,107 @@
-# Kamasylvia Realm — Projeto DevOps
+# Rodrigo da Cruz Godinho — Portfólio Interativo & Engenharia DevOps
 
-Página estática desenvolvida como atividade da disciplina de **DevOps**. O
-projeto demonstra um fluxo de **integração contínua e entrega contínua (CI/CD)**
-com GitHub Actions, validação automatizada, publicação no GitHub Pages e
-auditoria pós-deploy com Lighthouse CI.
+Aplicação web estática, interativa e orientada a telemetria em tempo real, desenvolvida para demonstrar na prática um ciclo completo de **Integração Contínua e Entrega Contínua (CI/CD)** no GitHub Actions, aliado a consumo assíncrono da **GitHub REST API v3**, animações procedurais em Canvas 2D e auditoria automatizada pós-deploy com **Lighthouse CI**.
 
-## Sobre o projeto
+---
 
-O site apresenta um portfólio temático inspirado em Kamasylvia, com interface
-responsiva, efeitos visuais, interações em JavaScript e uma seção que explica o
-próprio pipeline de entrega. A aplicação não possui backend: todos os arquivos
-publicados são estáticos.
+## Sobre o Projeto
 
-## Objetivos da atividade
+A página foi estruturada como uma jornada narrativa dividida em **cinco capítulos** (*O Prólogo*, *As Cinco Provações de um Commit*, *Crônicas & Construções*, *O Console dos Bastidores* e *Quem Escreve Esta História*), unindo uma atmosfera visual de fantasia a dados reais de engenharia de software e infraestrutura.
 
-- Criar um workflow automatizado com GitHub Actions.
-- Validar a qualidade e a sintaxe do HTML antes da publicação.
-- Empacotar e publicar uma aplicação estática no GitHub Pages.
-- Executar uma auditoria pós-deploy de performance, acessibilidade e SEO.
-- Aplicar práticas de segurança e reprodutibilidade no pipeline.
-- Compreender o ciclo de CI/CD em um projeto web estático.
+Mesmo sendo hospedada em um ambiente 100% estático (**GitHub Pages**), a aplicação atua como um painel vivo do ecossistema do autor no GitHub:
 
-## Tecnologias utilizadas
+- **Sincronização Completa de Repositórios:** Consulta a API pública do GitHub (`/users/Digooow/repos`) para listar **todos os repositórios públicos** da conta, criando automaticamente cards dinâmicos no Bento Grid para novos projetos assim que são publicados.
+- **Detalhamento Multi-Linguagem por Projeto:** Consulta o endpoint `/repos/Digooow/{repo}/languages` de cada repositório para exibir **todas as linguagens de programação utilizadas**, calculando suas proporções em porcentagem e renderizando uma barra visual multicolorida em cada card.
+- **Telemetria Real da Pipeline CI/CD:** Hidrata o cabeçalho e o painel da esteira com o número real da última execução (`Run #`), hash curto do commit (`SHA`), duração do build e status do workflow (`/actions/runs`).
+- **Console CLI Assíncrono:** Um terminal interativo no navegador com suporte a autocompletar (`Tab`), histórico de comandos (`↑` / `↓`) e comandos que executam diagnósticos reais de rede (`ping`), runtime/DOM (`inspect`), histórico de commits (`git log`) e catálogo de repositórios (`repos`).
 
-- **HTML5** — estrutura semântica da página.
-- **CSS3** — estilos personalizados, responsividade e animações.
-- **JavaScript** — interações, terminal do portfólio e efeitos em canvas.
-- **Tailwind CSS via CDN** — classes utilitárias e configuração visual.
-- **Font Awesome e Google Fonts** — ícones e tipografia.
-- **Node.js 20** — ambiente usado pelo Quality Gate.
-- **html-validate 10.17.0** — validação da sintaxe e qualidade do HTML.
-- **Git e GitHub** — versionamento e colaboração.
-- **GitHub Actions** — automação do pipeline.
-- **GitHub Pages** — hospedagem da página estática.
-- **Lighthouse CI** — auditoria automatizada após o deploy.
+---
 
-## Estrutura do repositório
+## Tecnologias Utilizadas
+
+### Front-End & Runtime no Navegador
+- **HTML5 Semântico & Acessível** — estrutura validada estaticamente e regiões dinâmicas com `aria-live="polite"`.
+- **CSS3 & Tailwind CSS** — *glassmorphism*, tipografia responsiva (`text-wrap: balance` e `text-wrap: pretty`), animações suaves e *scrollbars* padronizadas com fallback progressivo.
+- **JavaScript Moderno (ES Modules)** — arquitetura modular sem dependências pesadas de runtime.
+- **GitHub REST API v3** — integração client-side com cache inteligente em `localStorage` (TTL de 15 minutos) para respeitar limites de *rate-limiting*.
+- **HTML5 Canvas 2D & Performance API** — motor gráfico de partículas com controle de FPS e leitura de métricas reais de carregamento (`PerformanceNavigationTiming`).
+
+### DevOps, Qualidade & Infraestrutura
+- **GitHub Actions** — orquestração automatizada da esteira de CI/CD.
+- **Node.js 20 & `html-validate 10.17.0`** — *Quality Gate* de análise estática (SAST) de sintaxe, semântica e regras de acessibilidade HTML.
+- **GitHub Pages (Edge CDN)** — hospedagem distribuída globalmente com TLS 1.3 e publicação autenticada via token OIDC (`id-token: write`).
+- **Lighthouse CI** — auditoria automatizada pós-deploy avaliando Performance, Acessibilidade, Boas Práticas e SEO.
+
+---
+
+## Estrutura do Repositório
 
 ```text
 .
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml       # Quality Gate, deploy e auditoria
+│       └── deploy.yml              # Pipeline CI/CD (Quality Gate, Deploy e Lighthouse CI)
 ├── assets/
 │   ├── css/
-│   │   └── style.css        # Estilos personalizados
-│   ├── img/                 # Imagens utilizadas no site
+│   │   └── style.css               # Estilos personalizados, animações e glassmorphism
+│   ├── img/                        # Cenários panorâmicos de fundo
 │   └── js/
-│       └── main.js          # Comportamentos e interações
-├── index.html               # Página principal
-└── README.md                # Documentação do projeto
+│       ├── main.js                 # Ponto de entrada e inicialização dos módulos
+│       ├── github-telemetry.js     # Cliente da GitHub REST API (Runs, Commits, Repos e Languages)
+│       ├── terminal-cli.js         # Shell assíncrono interativo e inspeção dos nós de CI/CD
+│       ├── background-switcher.js  # Transição suave de cenários sincronizada ao scroll
+│       ├── canvas-engine.js        # Loop de renderização 2D e gerenciamento de partículas
+│       ├── fairy.js                # Entidades luminosas com física de voo orgânica
+│       └── mote.js                 # Partículas ambientais de profundidade
+├── index.html                      # Página principal estruturada em 5 capítulos
+└── readme.md                       # Documentação técnica do projeto
 ```
 
-## Pipeline CI/CD
+---
 
-O workflow está definido em
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Ele é
-executado automaticamente a cada `push` na branch `main` e também pode ser
-iniciado manualmente pela opção **Run workflow** do GitHub Actions.
+## Comandos do Console Interativo (`terminal-cli.js`)
 
-### 1. Quality Gate
+Na seção **O Console dos Bastidores**, o visitante pode interagir via teclado (com suporte a `Tab` para autocompletar e setas `↑`/`↓` para histórico) ou pelos botões de atalho rápido:
 
-O job `quality-gate`:
+| Comando | Descrição |
+| :--- | :--- |
+| `help` | Lista todos os comandos disponíveis no console. |
+| `story` | Exibe o prólogo narrativo (*"Era uma vez..."*) que inspira a página. |
+| `devops` | Mostra a arquitetura do pipeline e os dados reais da última execução do GitHub Actions. |
+| `repos` | Consulta a API do GitHub e lista todos os repositórios públicos sincronizados, com tamanho e data de push. |
+| `git log` | Busca em tempo real os últimos 5 commits da branch `main` via GitHub REST API. |
+| `ping` | Dispara 3 sondas HTTP (`HEAD`) e calcula a latência real (`min/avg/max` em ms) até a CDN. |
+| `inspect` | Lê a `PerformanceNavigationTiming` API para exibir TTFB, tempo de *DOM Interactive*, contagem de nós DOM e threads de CPU. |
+| `skills` | Apresenta o arsenal tecnológico em Backend (.NET/C#), Frontend, DevOps e Dados/IA. |
+| `about` | Resumo da trajetória acadêmica e profissional do autor. |
+| `contact` | Links diretos para GitHub, LinkedIn e LeetCode. |
+| `clear` | Limpa o histórico visual do terminal. |
 
-1. Faz o checkout do repositório com `actions/checkout`.
-2. Configura o Node.js 20 com `actions/setup-node`.
-3. Instala exatamente o `html-validate@10.17.0`.
-4. Usa `--ignore-scripts` para impedir a execução de scripts de ciclo de vida
-   durante a instalação do pacote.
-5. Executa `html-validate '*.html'`.
-6. Interrompe o pipeline caso a validação falhe.
+---
 
-As actions externas do workflow são referenciadas por commit SHA completo, em
-vez de depender somente de tags mutáveis. Isso torna as execuções
-reprodutíveis e reduz o risco de uma dependência externa ser alterada sem
-revisão.
+## Arquitetura da Pipeline CI/CD
 
-### 2. Publicação no GitHub Pages
+O workflow está definido em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) e é acionado automaticamente a cada `push` na branch `main` (ou manualmente via `workflow_dispatch`).
 
-O job `deploy` só é executado depois da aprovação do `quality-gate`. Ele:
+### 1. Quality Gate (`quality-gate`)
+1. Faz o checkout do código com `actions/checkout`.
+2. Provisiona o **Node.js 20** com `actions/setup-node`.
+3. Instala o validador `html-validate@10.17.0` utilizando a flag de segurança `--ignore-scripts` (mitigando execução arbitrária de scripts de pós-instalação).
+4. Executa `html-validate '*.html'`. Qualquer violação sintática, semântica ou de limite de metadados (como títulos acima de 70 caracteres) bloqueia imediatamente o deploy.
+5. Todas as Actions de terceiros são fixadas por **hash SHA completo de commit**, garantindo imutabilidade e segurança da cadeia de suprimentos (*Supply Chain Security*).
 
-1. Configura o ambiente do GitHub Pages.
-2. Empacota o conteúdo da raiz do repositório com
-   `actions/upload-pages-artifact`.
-3. Publica o artefato com `actions/deploy-pages`.
+### 2. Empacotamento e Deploy (`deploy`)
+Executado somente após a aprovação do `quality-gate`:
+1. Configura o ambiente oficial `github-pages`.
+2. Empacota os arquivos estáticos em um artefato imutável via `actions/upload-pages-artifact`.
+3. Publica nos servidores de borda do GitHub Pages via `actions/deploy-pages` usando permissões mínimas (`contents: read`, `pages: write`, `id-token: write`) e controle de concorrência (`group: "pages"`).
 
-O job utiliza o ambiente `github-pages` e disponibiliza a URL publicada por
-meio da saída `steps.deployment.outputs.page_url`.
+### 3. Auditoria Pós-Deploy (`lighthouse-audit`)
+Após a publicação entrar no ar em `https://digooow.github.io/`, o job `lighthouse-audit` inicializa o **Lighthouse CI** contra a URL de produção, auditando métricas de performance, acessibilidade e SEO e salvando os relatórios da execução.
 
-### 3. Auditoria pós-deploy
+---
 
-Depois da publicação, o job `lighthouse-audit` executa o Lighthouse CI na URL:
-
-```text
-https://digooow.github.io/
-```
-
-Essa etapa verifica a qualidade da página publicada, especialmente
-performance, acessibilidade e SEO, e armazena os artefatos da auditoria na
-execução do workflow.
-
-### Permissões e concorrência
-
-O workflow declara apenas as permissões necessárias para a publicação:
-
-- `contents: read`
-- `pages: write`
-- `id-token: write`
-
-As execuções usam o grupo de concorrência `pages`, evitando publicações
-simultâneas conflitantes.
-
-## Pré-requisitos
-
-- Uma conta no GitHub.
-- Git instalado.
-- Node.js 20.19 ou superior para reproduzir localmente o Quality Gate.
-- Um navegador atualizado.
-- Um repositório público com o GitHub Pages habilitado.
-
-Como a aplicação é estática, não é necessário executar um servidor backend.
-
-## Execução local
+## Execução e Validação Local
 
 Clone o repositório:
 
@@ -130,48 +110,23 @@ git clone https://github.com/Digooow/Digooow.github.io.git
 cd Digooow.github.io
 ```
 
-Para visualizar a página, abra o arquivo `index.html` no navegador. Para uma
-experiência mais próxima da publicação, use um servidor HTTP local, como a
-extensão **Live Server** do VS Code.
+Como o projeto utiliza **ES Modules** (`<script type="module">`), sirva a pasta raiz com um servidor HTTP local (por exemplo, a extensão **Live Server** do VS Code ou `npx serve .`).
 
-Para reproduzir a validação do workflow localmente:
+Para reproduzir localmente a mesma checagem do **Quality Gate** da esteira:
 
 ```bash
 npm install --global --ignore-scripts html-validate@10.17.0
 html-validate "*.html"
 ```
 
-## Configuração do GitHub Pages
-
-Para reproduzir a publicação:
-
-1. Acesse **Settings > Pages** no repositório.
-2. Em **Build and deployment**, selecione **GitHub Actions** como fonte.
-3. Garanta que o workflow tenha as permissões `pages: write` e
-   `id-token: write`.
-4. Faça um push para a branch `main` ou execute o workflow manualmente.
-5. Acompanhe os jobs na aba **Actions**.
-
-O workflow publica o conteúdo da raiz do repositório (`path: '.'`) no ambiente
-`github-pages`.
-
-## Resultado da atividade
-
-O resultado é uma página web acessível publicamente, com entrega automatizada e
-controle de qualidade integrado. A cada alteração enviada para `main`, o
-pipeline:
-
-1. Valida o HTML.
-2. Publica a versão aprovada no GitHub Pages.
-3. Audita a aplicação publicada com Lighthouse CI.
-
-Esse fluxo representa, em escala reduzida, uma prática DevOps na qual
-versionamento, validação, entrega e monitoramento da qualidade fazem parte de
-um processo integrado e reproduzível.
+---
 
 ## Autor
 
-**Rodrigo da Cruz Godinho**
+**Rodrigo da Cruz Godinho**  
+Estudante de Desenvolvimento de Sistemas e IA — SENAC Joinville (SC)
 
-- GitHub: [@Digooow](https://github.com/Digooow)
-- Projeto: [Digooow.github.io](https://github.com/Digooow/Digooow.github.io)
+- **Portfólio ao Vivo:** [https://digooow.github.io/](https://digooow.github.io/)
+- **GitHub:** [@Digooow](https://github.com/Digooow)
+- **LinkedIn:** [linkedin.com/in/digooow](https://linkedin.com/in/digooow)
+- **LeetCode:** [leetcode.com/digooow](https://leetcode.com/digooow)

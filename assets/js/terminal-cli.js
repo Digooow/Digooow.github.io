@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { fetchLatestWorkflowRun, fetchRecentCommits } from './github-telemetry.js';
+import { fetchLatestWorkflowRun, fetchRecentCommits, fetchAllUserRepos } from './github-telemetry.js';
 
 export function initTerminalAndPipeline() {
   window.selectPipelineStep = function(stepNum) {
@@ -70,6 +70,7 @@ export function initTerminalAndPipeline() {
       { text: '✦ CONSOLE DOS BASTIDORES — Comandos Disponíveis:', cls: 'text-amber-300 font-bold' },
       { text: '  story      → A história ("Era uma vez...") por trás do código', cls: 'text-amber-200' },
       { text: '  devops     → Telemetria ao vivo da pipeline GitHub Actions', cls: 'text-emerald-300' },
+      { text: '  repos      → Lista todos os repositórios públicos sincronizados', cls: 'text-cyan-300' },
       { text: '  git log    → Busca os últimos 5 commits reais na API do GitHub', cls: 'text-cyan-300' },
       { text: '  ping       → Mede a latência HTTP real até a borda da CDN', cls: 'text-cyan-300' },
       { text: '  inspect    → Diagnóstico real de runtime, DOM e Performance API', cls: 'text-cyan-300' },
@@ -105,6 +106,25 @@ export function initTerminalAndPipeline() {
         // Fallback silencioso caso offline
       }
       return base;
+    },
+    repos: async () => {
+      try {
+        const repos = await fetchAllUserRepos();
+        const lines = [
+          { text: `✦ Catálogo Completo (${repos.length} repositórios públicos em github.com/Digooow):`, cls: 'text-amber-300 font-bold' }
+        ];
+        repos.forEach(r => {
+          lines.push({
+            text: `  • ${r.name} [${r.language || 'Multi-stack'}] — ${r.size} (Push: ${r.updatedAt})`,
+            cls: 'text-emerald-300'
+          });
+        });
+        return lines;
+      } catch (err) {
+        return [
+          { text: `⚠ Não foi possível listar os repositórios no momento (${err.message}).`, cls: 'text-amber-300' }
+        ];
+      }
     },
     'git log': async () => {
       try {
