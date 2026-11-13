@@ -196,7 +196,7 @@ export function initTerminalAndPipeline() {
     ],
     about: async () => [
       { text: '✦ Rodrigo da Cruz Godinho', cls: 'text-amber-300 font-bold' },
-      { text: '  Estudante de Desenvolvimento de Sistemas e IA no SENAC Joinville (SC).', cls: 'text-slate-200' },
+      { text: '  Estudante de Desenvolvimento de Sistemas (Programa Jovem Programador) na Faculdade de Tecnologia SENAC Joinville (SC).', cls: 'text-slate-200' },
       { text: '  Transformando requisitos complexos em software confiável, testado e bem contado.', cls: 'text-slate-200' },
     ],
     contact: async () => [

@@ -1,6 +1,6 @@
 # Rodrigo da Cruz Godinho — Portfólio Interativo & Engenharia DevOps
 
-Aplicação web estática, interativa e orientada a telemetria em tempo real, desenvolvida para demonstrar na prática um ciclo completo de **Integração Contínua e Entrega Contínua (CI/CD)** no GitHub Actions, aliado a consumo assíncrono da **GitHub REST API v3**, animações procedurais em Canvas 2D e auditoria automatizada pós-deploy com **Lighthouse CI**.
+Aplicação web estática, interativa e orientada a telemetria em tempo real, desenvolvida na disciplina de **DevOps com IA** para demonstrar na prática um ciclo completo de **Integração Contínua e Entrega Contínua (CI/CD)** no GitHub Actions, aliado a consumo assíncrono da **GitHub REST API v3**, animações procedurais em Canvas 2D e auditoria automatizada pós-deploy com **Lighthouse CI**.
 
 ---
 
@@ -125,7 +125,7 @@ html-validate "*.html"
 ## Autor
 
 **Rodrigo da Cruz Godinho**  
-Estudante de Desenvolvimento de Sistemas e IA — SENAC Joinville (SC)
+Qualificação Profissional em Desenvolvimento de Sistemas (Programa Jovem Programador) — Faculdade de Tecnologia SENAC Joinville (SC)
 
 - **Portfólio ao Vivo:** [https://digooow.github.io/](https://digooow.github.io/)
 - **GitHub:** [@Digooow](https://github.com/Digooow)
